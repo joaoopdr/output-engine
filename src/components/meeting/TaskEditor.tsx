@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import type { MeetingTask, Confidence } from "@/types/meeting";
 import { ConfidenceBadge } from "./ConfidenceBadge";
+import { EvidenceToggle } from "./EvidenceToggle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Trash2, Plus, ChevronDown, ChevronRight, Pencil, Check, X } from "lucide-react";
@@ -8,11 +9,16 @@ import { Trash2, Plus, ChevronDown, ChevronRight, Pencil, Check, X } from "lucid
 interface Props {
   tasks: MeetingTask[];
   onChange: (tasks: MeetingTask[]) => void;
+  filterLowConfidence?: boolean;
 }
 
-export function TaskEditor({ tasks, onChange }: Props) {
+export function TaskEditor({ tasks, onChange, filterLowConfidence }: Props) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [selectedIdx, setSelectedIdx] = useState(-1);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const displayTasks = filterLowConfidence ? tasks.filter(t => t.confidence === "low") : tasks;
 
   const update = (id: string, patch: Partial<MeetingTask>) => {
     onChange(tasks.map((t) => (t.id === id ? { ...t, ...patch } : t)));
@@ -27,20 +33,47 @@ export function TaskEditor({ tasks, onChange }: Props) {
       owner: "Unassigned",
       due_date_text: "",
       description_bullets: [],
+      details: [],
       confidence: "medium",
+      evidence: [],
+      notes: "",
     };
     onChange([...tasks, newTask]);
     setEditingId(newTask.id);
     setExpandedId(newTask.id);
   };
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (editingId) return;
+      const target = e.target as HTMLElement;
+      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.tagName === "SELECT") return;
+
+      if (e.key === "j") { e.preventDefault(); setSelectedIdx(i => Math.min(i + 1, displayTasks.length - 1)); }
+      if (e.key === "k") { e.preventDefault(); setSelectedIdx(i => Math.max(i - 1, 0)); }
+      if (e.key === "e" && selectedIdx >= 0 && selectedIdx < displayTasks.length) {
+        e.preventDefault();
+        const t = displayTasks[selectedIdx];
+        setEditingId(t.id);
+        setExpandedId(t.id);
+      }
+      if (e.key === "d" && selectedIdx >= 0 && selectedIdx < displayTasks.length) {
+        e.preventDefault();
+        remove(displayTasks[selectedIdx].id);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [editingId, selectedIdx, displayTasks]);
+
   return (
-    <div className="space-y-1">
-      {tasks.map((task) => {
+    <div className="space-y-1" ref={containerRef}>
+      {displayTasks.map((task, idx) => {
         const isExpanded = expandedId === task.id;
         const isEditing = editingId === task.id;
+        const isSelected = selectedIdx === idx;
         return (
-          <div key={task.id} className="rounded-md border bg-card">
+          <div key={task.id} className={`rounded-md border bg-card ${isSelected ? "ring-1 ring-primary" : ""}`}>
             <div
               className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-muted/50 transition-colors"
               onClick={() => setExpandedId(isExpanded ? null : task.id)}
@@ -61,7 +94,12 @@ export function TaskEditor({ tasks, onChange }: Props) {
                 {isEditing ? (
                   <>
                     <div className="grid grid-cols-3 gap-2 pt-2">
-                      <Input value={task.title} onChange={(e) => update(task.id, { title: e.target.value })} placeholder="Task title" className="col-span-3 text-sm" />
+                      <Input
+                        value={task.title}
+                        onChange={(e) => update(task.id, { title: e.target.value })}
+                        onKeyDown={(e) => { if (e.key === "Enter") setEditingId(null); if (e.key === "Escape") setEditingId(null); }}
+                        placeholder="Task title" className="col-span-3 text-sm"
+                      />
                       <Input value={task.owner} onChange={(e) => update(task.id, { owner: e.target.value })} placeholder="Owner" className="text-sm" />
                       <Input value={task.due_date_text} onChange={(e) => update(task.id, { due_date_text: e.target.value })} placeholder="Due date" className="text-sm" />
                       <select
@@ -75,39 +113,48 @@ export function TaskEditor({ tasks, onChange }: Props) {
                       </select>
                     </div>
                     <div className="space-y-1">
-                      <label className="text-xs font-mono text-muted-foreground">Description bullets</label>
-                      {task.description_bullets.map((b, i) => (
+                      <label className="text-xs font-mono text-muted-foreground">Details</label>
+                      {(task.details || task.description_bullets || []).map((b, i) => (
                         <div key={i} className="flex gap-1">
                           <Input
                             value={b}
                             onChange={(e) => {
-                              const bullets = [...task.description_bullets];
-                              bullets[i] = e.target.value;
-                              update(task.id, { description_bullets: bullets });
+                              const items = [...(task.details || task.description_bullets || [])];
+                              items[i] = e.target.value;
+                              update(task.id, { details: items, description_bullets: items });
                             }}
                             className="text-sm"
                           />
                           <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => {
-                            const bullets = task.description_bullets.filter((_, j) => j !== i);
-                            update(task.id, { description_bullets: bullets });
+                            const items = (task.details || task.description_bullets || []).filter((_, j) => j !== i);
+                            update(task.id, { details: items, description_bullets: items });
                           }}>
                             <X className="h-3 w-3" />
                           </Button>
                         </div>
                       ))}
-                      <Button variant="ghost" size="sm" className="text-xs" onClick={() => update(task.id, { description_bullets: [...task.description_bullets, ""] })}>
-                        <Plus className="h-3 w-3 mr-1" /> Add bullet
+                      <Button variant="ghost" size="sm" className="text-xs" onClick={() => {
+                        const items = [...(task.details || task.description_bullets || []), ""];
+                        update(task.id, { details: items, description_bullets: items });
+                      }}>
+                        <Plus className="h-3 w-3 mr-1" /> Add detail
                       </Button>
+                    </div>
+                    <div>
+                      <label className="text-xs font-mono text-muted-foreground">Notes</label>
+                      <Input value={task.notes || ""} onChange={(e) => update(task.id, { notes: e.target.value })} placeholder="Dependencies, notes..." className="text-sm" />
                     </div>
                   </>
                 ) : (
                   <div className="pt-2 space-y-1 text-sm">
                     {task.due_date_text && <p className="text-muted-foreground">Due: {task.due_date_text}</p>}
-                    {task.description_bullets.length > 0 && (
+                    {(task.details || task.description_bullets || []).length > 0 && (
                       <ul className="list-disc list-inside text-muted-foreground space-y-0.5">
-                        {task.description_bullets.map((b, i) => <li key={i}>{b}</li>)}
+                        {(task.details || task.description_bullets || []).map((b, i) => <li key={i}>{b}</li>)}
                       </ul>
                     )}
+                    {task.notes && <p className="text-xs text-muted-foreground">📝 {task.notes}</p>}
+                    <EvidenceToggle evidence={task.evidence || []} />
                   </div>
                 )}
               </div>

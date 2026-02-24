@@ -6,7 +6,10 @@ export interface MeetingTask {
   owner: string;
   due_date_text: string;
   description_bullets: string[];
+  details: string[];
   confidence: Confidence;
+  evidence: string[];
+  notes: string;
 }
 
 export interface MeetingDecision {
@@ -14,13 +17,16 @@ export interface MeetingDecision {
   decision: string;
   context: string;
   confidence: Confidence;
+  evidence: string[];
 }
 
 export interface MeetingQuestion {
   id: string;
   question: string;
-  suggested_owner: string;
+  directed_to: string;
+  suggested_owner: string; // kept for backward compat
   confidence: Confidence;
+  evidence: string[];
 }
 
 export interface ParsedOutput {
