@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { validateModelOutput } from "@/lib/validation";
-import type { ParsedOutput, TranscriptCase, Run } from "@/types/meeting";
+import type { ParsedOutput, Run } from "@/types/meeting";
 import { toast } from "sonner";
 
 export function useMeetingProcessor() {
@@ -14,13 +14,13 @@ export function useMeetingProcessor() {
     title?: string;
     attendees?: string;
     template_type: string;
+    meeting_date?: string;
   }) => {
     setIsProcessing(true);
     setParsedOutput(null);
     setCurrentRun(null);
 
     try {
-      // 1. Create transcript case
       const { data: tc, error: tcErr } = await supabase
         .from("transcript_cases")
         .insert({
@@ -34,28 +34,25 @@ export function useMeetingProcessor() {
 
       if (tcErr || !tc) throw new Error(tcErr?.message || "Failed to save transcript");
 
-      // 2. Call edge function
       const { data: fnData, error: fnErr } = await supabase.functions.invoke("process-transcript", {
         body: {
           transcript_text: input.transcript_text,
           template_type: input.template_type,
           attendees: input.attendees,
+          meeting_date: input.meeting_date,
         },
       });
 
       if (fnErr) throw new Error(fnErr.message || "Edge function error");
 
       const rawOutput = fnData?.raw_output || "";
-
-      // 3. Validate
       const validation = validateModelOutput(rawOutput);
 
-      // 4. Save run
       const { data: run, error: runErr } = await supabase
         .from("runs")
         .insert({
           transcript_case_id: tc.id,
-          prompt_version: "v1",
+          prompt_version: "v2",
           model_name: "google/gemini-3-flash-preview",
           raw_model_output: rawOutput,
           parsed_output_json: validation.output as any,
