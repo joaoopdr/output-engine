@@ -9,35 +9,28 @@ export function exportAsMarkdown(
   let md = title ? `# ${title}\n\n` : "";
 
   md += "## Tasks\n\n";
-  tasks.forEach((t, i) => {
-    md += `### ${i + 1}. ${t.title}\n`;
-    md += `- **Owner:** ${t.owner}\n`;
-    if (t.due_date_text) md += `- **Due:** ${t.due_date_text}\n`;
-    md += `- **Confidence:** ${t.confidence}\n`;
-    if (t.details && t.details.length > 0) {
-      md += `- **Details:**\n`;
-      t.details.forEach((b) => (md += `  - ${b}\n`));
-    } else if (t.description_bullets && t.description_bullets.length > 0) {
-      md += `- **Details:**\n`;
-      t.description_bullets.forEach((b) => (md += `  - ${b}\n`));
-    }
-    if (t.notes) md += `- **Notes:** ${t.notes}\n`;
-    md += "\n";
+  tasks.forEach((t) => {
+    const owner = t.owner ? `[${t.owner}]` : "";
+    const due = t.due_date_text ? `[${t.due_date_text}]` : "";
+    md += `- ${owner} ${due} ${t.title}\n`.replace(/\s+/g, " ");
+    (t.details || t.description_bullets || []).forEach((b) => {
+      md += `  - ${b}\n`;
+    });
+    if (t.notes) md += `  - 📝 ${t.notes}\n`;
   });
 
-  md += "## Decisions\n\n";
-  decisions.forEach((d, i) => {
-    md += `${i + 1}. **${d.decision}** _(${d.confidence})_\n`;
+  md += "\n## Decisions\n\n";
+  decisions.forEach((d) => {
+    md += `- ${d.decision}\n`;
   });
 
-  md += "\n## Things to Confirm\n\n";
-  questions.forEach((q, i) => {
-    md += `${i + 1}. ${q.question}`;
-    if (q.directed_to) md += ` → ${q.directed_to}`;
-    md += ` _(${q.confidence})_\n`;
+  md += "\n## Things to confirm\n\n";
+  questions.forEach((q) => {
+    const directed = q.directed_to ? `[${q.directed_to}]` : "";
+    md += `- ${directed} ${q.question}\n`.replace(/\s+/g, " ");
   });
 
-  return md;
+  return md.trim() + "\n";
 }
 
 export function exportAsJSON(
@@ -50,20 +43,20 @@ export function exportAsJSON(
       title: t.title,
       owner: t.owner,
       due_date_text: t.due_date_text,
-      details: t.details || t.description_bullets,
+      details: t.details || t.description_bullets || [],
       confidence: t.confidence,
-      evidence: t.evidence,
+      evidence: t.evidence || [],
     })),
     decisions: decisions.map(d => ({
       decision: d.decision,
       confidence: d.confidence,
-      evidence: d.evidence,
+      evidence: d.evidence || [],
     })),
     things_to_confirm: questions.map(q => ({
       question: q.question,
       directed_to: q.directed_to,
       confidence: q.confidence,
-      evidence: q.evidence,
+      evidence: q.evidence || [],
     })),
   }, null, 2);
 }

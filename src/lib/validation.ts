@@ -1,9 +1,12 @@
 import type { ParsedOutput, Confidence, MeetingTask, MeetingDecision, MeetingQuestion } from "@/types/meeting";
 
 const VALID_CONFIDENCE: Confidence[] = ["low", "medium", "high"];
-const MAX_TASKS = 25;
+const MAX_TASKS = 15;
 const MAX_DECISIONS = 15;
 const MAX_QUESTIONS = 15;
+
+// Summary-like prefixes to filter out
+const SUMMARY_PREFIXES = /^(discussed|talk about|meeting about|went over|reviewed|covered|chatted about)/i;
 
 export interface ValidationResult {
   valid: boolean;
@@ -13,6 +16,13 @@ export interface ValidationResult {
 
 function generateId(): string {
   return crypto.randomUUID();
+}
+
+function isVerbFirst(title: string): boolean {
+  const firstWord = title.trim().split(/\s+/)[0]?.toLowerCase() || "";
+  // Common action verbs
+  const verbs = ["send", "draft", "confirm", "investigate", "create", "update", "review", "fix", "add", "remove", "write", "build", "deploy", "test", "check", "schedule", "set", "get", "prepare", "finalize", "complete", "share", "submit", "follow", "reach", "contact", "organize", "plan", "implement", "design", "research", "analyze", "coordinate", "arrange", "ensure", "verify", "validate", "configure", "migrate", "refactor", "document", "present", "demo", "deliver", "ship", "launch", "publish", "release", "merge", "push", "pull", "clean", "move", "transfer", "assign", "delegate", "notify", "inform", "escalate", "resolve", "close", "open", "start", "finish", "give", "take", "make", "do", "run", "sort", "handle", "address", "discuss"];
+  return verbs.some(v => firstWord.startsWith(v));
 }
 
 export function validateModelOutput(raw: string): ValidationResult {
@@ -31,23 +41,30 @@ export function validateModelOutput(raw: string): ValidationResult {
 
   if (!Array.isArray(parsed.tasks)) errors.push("Missing or invalid 'tasks' array");
   if (!Array.isArray(parsed.decisions)) errors.push("Missing or invalid 'decisions' array");
-  // Accept both keys
   const rawQuestions = parsed.things_to_confirm || parsed.open_questions;
-  if (!Array.isArray(rawQuestions)) errors.push("Missing or invalid 'things_to_confirm' / 'open_questions' array");
+  if (!Array.isArray(rawQuestions)) errors.push("Missing or invalid 'things_to_confirm' array");
 
   if (errors.length > 0) return { valid: false, output: null, errors };
 
-  const tasks: MeetingTask[] = parsed.tasks.slice(0, MAX_TASKS).map((t: any) => ({
-    id: generateId(),
-    title: String(t.title || ""),
-    owner: String(t.owner || "Unassigned"),
-    due_date_text: String(t.due_date_text || ""),
-    description_bullets: Array.isArray(t.description_bullets) ? t.description_bullets.map(String) : [],
-    details: Array.isArray(t.details) ? t.details.map(String) : (Array.isArray(t.description_bullets) ? t.description_bullets.map(String) : []),
-    confidence: VALID_CONFIDENCE.includes(t.confidence) ? t.confidence : "low",
-    evidence: Array.isArray(t.evidence) ? t.evidence.map(String) : [],
-    notes: String(t.notes || ""),
-  }));
+  // Post-processing: filter summary tasks, enforce verb-first, cap, dedupe
+  let tasks: MeetingTask[] = parsed.tasks
+    .filter((t: any) => !SUMMARY_PREFIXES.test(String(t.title || "").trim()))
+    .slice(0, MAX_TASKS)
+    .map((t: any) => {
+      const title = String(t.title || "");
+      const confidence = VALID_CONFIDENCE.includes(t.confidence) ? t.confidence : "low";
+      return {
+        id: generateId(),
+        title,
+        owner: String(t.owner || "Unassigned"),
+        due_date_text: String(t.due_date_text || ""),
+        description_bullets: Array.isArray(t.description_bullets) ? t.description_bullets.map(String) : [],
+        details: Array.isArray(t.details) ? t.details.map(String) : (Array.isArray(t.description_bullets) ? t.description_bullets.map(String) : []),
+        confidence: !isVerbFirst(title) && confidence === "high" ? "medium" as Confidence : confidence,
+        evidence: Array.isArray(t.evidence) ? t.evidence.map(String) : [],
+        notes: String(t.notes || ""),
+      };
+    });
 
   const decisions: MeetingDecision[] = parsed.decisions.slice(0, MAX_DECISIONS).map((d: any) => ({
     id: generateId(),
@@ -66,9 +83,9 @@ export function validateModelOutput(raw: string): ValidationResult {
     evidence: Array.isArray(q.evidence) ? q.evidence.map(String) : [],
   }));
 
-  if (tasks.some((t) => !t.title)) errors.push("Some tasks have empty titles");
-  if (decisions.some((d) => !d.decision)) errors.push("Some decisions have empty statements");
-  if (open_questions.some((q) => !q.question)) errors.push("Some questions are empty");
+  if (tasks.some(t => !t.title)) errors.push("Some tasks have empty titles");
+  if (decisions.some(d => !d.decision)) errors.push("Some decisions have empty statements");
+  if (open_questions.some(q => !q.question)) errors.push("Some questions are empty");
 
   return {
     valid: errors.length === 0,
