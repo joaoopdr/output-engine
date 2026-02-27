@@ -6,7 +6,7 @@ interface Props {
   onSnippetClick?: (snippet: string) => void;
 }
 
-export function EvidenceToggle({ evidence }: Props) {
+export function EvidenceToggle({ evidence, onSnippetClick }: Props) {
   const [open, setOpen] = useState(false);
 
   if (!evidence || evidence.length === 0) return null;
