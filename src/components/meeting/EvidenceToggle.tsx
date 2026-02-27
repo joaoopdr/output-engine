@@ -24,7 +24,11 @@ export function EvidenceToggle({ evidence, onSnippetClick }: Props) {
       {open && (
         <div className="mt-1 ml-4 space-y-1">
           {evidence.map((e, i) => (
-            <p key={i} className="text-xs text-muted-foreground italic border-l-2 border-muted pl-2">
+            <p
+              key={i}
+              className={`text-xs text-muted-foreground italic border-l-2 border-muted pl-2 ${onSnippetClick ? "cursor-pointer hover:text-foreground hover:border-primary transition-colors" : ""}`}
+              onClick={() => onSnippetClick?.(e)}
+            >
               "{e}"
             </p>
           ))}
