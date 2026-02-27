@@ -3,6 +3,7 @@ import { ChevronRight, ChevronDown, Quote } from "lucide-react";
 
 interface Props {
   evidence: string[];
+  onSnippetClick?: (snippet: string) => void;
 }
 
 export function EvidenceToggle({ evidence }: Props) {
