@@ -96,5 +96,6 @@ export function OutputHeader({
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
+    </div>
   );
 }

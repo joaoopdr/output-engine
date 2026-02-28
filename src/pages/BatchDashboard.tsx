@@ -217,7 +217,7 @@ export default function BatchDashboard() {
                       {r.heavy_edits ? "Yes" : "No"}
                     </button>
                   </td>
-                  <td className="text-right px-4 py-2 text-muted-foreground text-xs font-mono">
+                  <td className="text-right px-4 py-1.5 text-muted-foreground text-xs font-mono">
                     {new Date(r.created_at).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
                   </td>
                 </tr>

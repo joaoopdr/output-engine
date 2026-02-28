@@ -93,7 +93,7 @@
 }
 
 .floating-label-group input {
-  @apply w-full rounded-lg border border-input bg-transparent px-3.5 pt-5 pb-2 text-sm text-foreground transition-colors;
+  @apply w-full rounded-lg border border-white/[0.12] bg-transparent px-3.5 pt-5 pb-2 text-sm text-foreground transition-colors;
   color-scheme: dark;
 }
 

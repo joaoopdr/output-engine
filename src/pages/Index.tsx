@@ -504,25 +504,31 @@ export default function Index() {
                     value={editNotes}
                     onChange={e => setEditNotes(e.target.value)}
                     placeholder="Edit notes…"
-                    className="text-sm flex-1 h-8 rounded-md border border-input bg-transparent px-3 placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/50"
+                    className="text-sm flex-1 h-7 rounded-md border border-input bg-transparent px-3 placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/50"
                   />
                   <div className="flex items-center gap-1.5 shrink-0">
                     <Switch checked={heavyEdits} onCheckedChange={setHeavyEdits} className="scale-75" />
                     <span className="text-[11px] text-muted-foreground">Heavy edits</span>
                   </div>
                   <div className="h-4 w-px bg-border/40" />
-                  <Button onClick={handleSaveEdits} size="sm" className="text-xs h-7 gap-1">
+                  <div className="flex items-center gap-0.5 border border-border/40 rounded-md px-0.5">
+                    <Button onClick={handleCopy} variant="ghost" size="sm" className="text-xs h-7 gap-1 text-muted-foreground hover:text-foreground">
+                      <Copy className="h-3 w-3" /> Copy
+                    </Button>
+                    <Button onClick={handleExportMD} variant="ghost" size="sm" className="text-xs h-7 gap-1 text-muted-foreground hover:text-foreground">
+                      <FileText className="h-3 w-3" /> MD
+                    </Button>
+                    <Button onClick={handleExportJSON} variant="ghost" size="sm" className="text-xs h-7 gap-1 text-muted-foreground hover:text-foreground">
+                      <FileJson className="h-3 w-3" /> JSON
+                    </Button>
+                  </div>
+                  <div className="h-4 w-px bg-border/40" />
+                  <button
+                    onClick={handleSaveEdits}
+                    className="generate-btn h-7 px-3 rounded-md text-primary-foreground text-xs font-medium flex items-center gap-1"
+                  >
                     <Save className="h-3 w-3" /> Save
-                  </Button>
-                  <Button onClick={handleCopy} variant="ghost" size="sm" className="text-xs h-7 gap-1 text-muted-foreground hover:text-foreground">
-                    <Copy className="h-3 w-3" /> Copy
-                  </Button>
-                  <Button onClick={handleExportMD} variant="ghost" size="sm" className="text-xs h-7 gap-1 text-muted-foreground hover:text-foreground">
-                    <FileText className="h-3 w-3" /> MD
-                  </Button>
-                  <Button onClick={handleExportJSON} variant="ghost" size="sm" className="text-xs h-7 gap-1 text-muted-foreground hover:text-foreground">
-                    <FileJson className="h-3 w-3" /> JSON
-                  </Button>
+                  </button>
                 </div>
               </>
             )}

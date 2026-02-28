@@ -29,7 +29,7 @@ export function DecisionCard({
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className={`rounded-lg border bg-card transition-all ${isSelected ? "ring-1 ring-primary shadow-sm" : ""}`}>
+    <div className={`rounded-lg border bg-[hsl(var(--card))] border-l-[3px] border-l-[hsl(var(--accent)/0.4)] transition-all ${isSelected ? "ring-1 ring-primary shadow-sm" : ""}`}>
       {isEditing ? (
         <div className="px-3 py-2 space-y-2">
           <Input

@@ -34,7 +34,7 @@ export function TaskCard({
     <div className={`rounded-lg border bg-[hsl(var(--card))] border-l-[3px] border-l-[hsl(var(--primary)/0.4)] transition-all ${isSelected ? "ring-1 ring-primary shadow-sm" : ""}`}>
       {/* Header row */}
       <div
-        className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-muted/40 transition-colors"
+        className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-muted/20 transition-colors"
         onClick={onToggleExpand}
       >
         {isExpanded
