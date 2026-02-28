@@ -390,9 +390,9 @@ export default function Index() {
                       { num: 3, label: "Review & export" },
                     ].map((step, i) => (
                       <div key={step.num} className="flex items-center">
-                        {i > 0 && <div className="w-10 h-px bg-border/50 mx-1" />}
+                        {i > 0 && <div className="w-10 h-px bg-primary/20 mx-1" />}
                         <div className="flex flex-col items-center gap-1.5">
-                          <div className="w-8 h-8 rounded-full border border-border/60 flex items-center justify-center text-xs font-medium text-muted-foreground">
+                          <div className="w-8 h-8 rounded-full border border-primary/40 flex items-center justify-center text-xs font-medium text-primary">
                             {step.num}
                           </div>
                           <span className="text-[11px] text-muted-foreground whitespace-nowrap">{step.label}</span>
