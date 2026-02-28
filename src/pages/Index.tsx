@@ -362,7 +362,7 @@ export default function Index() {
                   <Button
                     variant="outline"
                     size="icon"
-                    className="h-12 w-12 shrink-0 border-border/60"
+                    className="h-[52px] w-[52px] shrink-0 border-border/60"
                     onClick={handleClear}
                     title="Clear all"
                   >
