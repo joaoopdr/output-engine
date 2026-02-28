@@ -1,8 +1,6 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMeetingProcessor } from "@/hooks/use-meeting-processor";
 import { TaskList } from "@/components/meeting/TaskList";
@@ -15,10 +13,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { MeetingTask, MeetingDecision, MeetingQuestion } from "@/types/meeting";
 import {
-  Zap, BarChart3, Copy, FileJson, FileText, Loader2,
+  Zap, Copy, FileJson, FileText, Loader2,
   Save, AlertTriangle, Upload, Eraser, User, Calendar,
+  LayoutGrid, HelpCircle, CheckCircle2, Shield, Eye,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import {
+  Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const DEMO_TRANSCRIPT = `Alice: Alright everyone, let's go through this week's priorities.
 Bob: I'll finish the API integration by Wednesday. Already started yesterday.
@@ -31,6 +33,10 @@ Sam: Will do.
 Alice: One more thing - we should probably think about the onboarding flow soon.
 Charlie: Yeah, maybe next sprint. Not urgent.
 Alice: Agreed. Let's revisit onboarding next week. For now, focus on web dashboard.`;
+
+function wordCount(text: string): number {
+  return text.trim() ? text.trim().split(/\s+/).length : 0;
+}
 
 export default function Index() {
   const [transcript, setTranscript] = useState("");
@@ -54,13 +60,12 @@ export default function Index() {
   const [isDirty, setIsDirty] = useState(false);
 
   const hasRelativeDates = transcript.match(/\b(tomorrow|end of week|friday|monday|next week)\b/i) && !meetingDate;
+  const wc = useMemo(() => wordCount(transcript), [transcript]);
 
-  // Track dirty state
   useEffect(() => {
     if (tasks.length > 0 || decisions.length > 0 || questions.length > 0) setIsDirty(true);
   }, [tasks, decisions, questions]);
 
-  // Keyboard shortcuts
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement;
@@ -88,7 +93,6 @@ export default function Index() {
 
   const handleRegenerate = (section?: string) => {
     if (section === "scratch" || !isDirty) { handleGenerate(); return; }
-    // For now, full regenerate
     handleGenerate();
   };
 
@@ -144,7 +148,6 @@ export default function Index() {
     }
   }, []);
 
-  // Cross-type conversions
   const convertTaskToConfirm = (task: MeetingTask) => {
     setQuestions(prev => [...prev, {
       id: crypto.randomUUID(), question: `Is someone owning "${task.title}" this week?`,
@@ -200,205 +203,326 @@ export default function Index() {
   const hasOutputs = tasks.length > 0 || decisions.length > 0 || questions.length > 0;
 
   return (
-    <div className="dark min-h-screen bg-background text-foreground">
-      <CommandPalette open={cmdOpen} onOpenChange={setCmdOpen} onAction={handleCommand} />
+    <TooltipProvider>
+      <div className="dark min-h-screen bg-background text-foreground">
+        <CommandPalette open={cmdOpen} onOpenChange={setCmdOpen} onAction={handleCommand} />
 
-      {/* Header */}
-      <header className="border-b px-6 py-2.5 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Zap className="h-5 w-5 text-primary" />
-          <h1 className="text-sm font-semibold font-mono tracking-tight">MEETINGS → WORK</h1>
-          <span className="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
-            Weekly Planning
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-[11px] text-muted-foreground font-mono hidden md:block">
-            / command palette · j/k navigate · e edit · f filter
-          </span>
-          <Link to="/batch">
-            <Button variant="outline" size="sm" className="text-xs font-mono h-7">
-              <BarChart3 className="h-3 w-3 mr-1" /> Batch
-            </Button>
-          </Link>
-        </div>
-      </header>
+        {/* Header */}
+        <header className="border-b border-border/60 px-5 py-2 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <Zap className="h-4 w-4 text-primary" />
+            <span className="text-xs font-medium tracking-wide text-muted-foreground">
+              Meetings → Work
+            </span>
+            <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+              Weekly Planning
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Link to="/batch">
+              <Button variant="ghost" size="sm" className="text-xs h-7 gap-1.5 text-muted-foreground hover:text-foreground">
+                <LayoutGrid className="h-3.5 w-3.5" /> Batch
+              </Button>
+            </Link>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground">
+                  <HelpCircle className="h-3.5 w-3.5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" align="end" className="max-w-[240px] text-xs space-y-1 p-3">
+                <p className="font-medium text-foreground mb-1.5">Keyboard shortcuts</p>
+                <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-muted-foreground">
+                  <kbd className="px-1.5 py-0.5 rounded bg-muted text-[10px] text-center">/</kbd><span>Command palette</span>
+                  <kbd className="px-1.5 py-0.5 rounded bg-muted text-[10px] text-center">j/k</kbd><span>Navigate items</span>
+                  <kbd className="px-1.5 py-0.5 rounded bg-muted text-[10px] text-center">e</kbd><span>Edit item</span>
+                  <kbd className="px-1.5 py-0.5 rounded bg-muted text-[10px] text-center">d</kbd><span>Delete item</span>
+                  <kbd className="px-1.5 py-0.5 rounded bg-muted text-[10px] text-center">f</kbd><span>Filter low-confidence</span>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        </header>
 
-      <div className="flex flex-1" style={{ height: "calc(100vh - 45px)" }}>
-        {/* Left: Input */}
-        <div className="w-[400px] border-r flex flex-col shrink-0">
-          <div className="p-4 space-y-3 flex-1 overflow-auto">
-            <div>
-              <label className="text-[11px] font-mono text-muted-foreground uppercase tracking-wider mb-1 block">Title</label>
-              <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. Sprint Planning W8" className="text-sm h-8" />
-            </div>
-            <div>
-              <label className="text-[11px] font-mono text-muted-foreground uppercase tracking-wider mb-1 block">Attendees</label>
-              <Input value={attendees} onChange={e => setAttendees(e.target.value)} placeholder="Alice, Bob, Charlie" className="text-sm h-8" />
-            </div>
-            <div>
-              <label className="text-[11px] font-mono text-muted-foreground uppercase tracking-wider mb-1 block">Meeting date</label>
-              <Input type="date" value={meetingDate} onChange={e => setMeetingDate(e.target.value)} className="text-sm h-8" />
-              <p className="text-[10px] text-muted-foreground mt-0.5">Resolves "tomorrow", "Friday", etc.</p>
-            </div>
-            <div className="flex-1 flex flex-col">
-              <div className="flex items-center justify-between mb-1">
-                <label className="text-[11px] font-mono text-muted-foreground uppercase tracking-wider">Transcript</label>
-                <div className="flex gap-1">
-                  <Button variant="ghost" size="sm" className="text-[11px] h-6 px-2" onClick={() => setTranscript(DEMO_TRANSCRIPT)}>
-                    Example
-                  </Button>
-                  <Button variant="ghost" size="sm" className="text-[11px] h-6 px-2" onClick={() => fileInputRef.current?.click()}>
-                    <Upload className="h-3 w-3 mr-1" /> .txt
+        <div className="flex" style={{ height: "calc(100vh - 41px)" }}>
+          {/* Left: Input Panel */}
+          <div className="w-[420px] border-r border-border/40 flex flex-col shrink-0 bg-background">
+            <div className="p-5 space-y-4 flex-1 flex flex-col overflow-auto custom-scrollbar">
+              {/* Floating label inputs */}
+              <div className="floating-label-group">
+                <input
+                  id="title-input"
+                  value={title}
+                  onChange={e => setTitle(e.target.value)}
+                  placeholder=" "
+                  className="h-[52px]"
+                />
+                <label htmlFor="title-input">Title</label>
+              </div>
+
+              <div>
+                <div className="floating-label-group">
+                  <input
+                    id="attendees-input"
+                    value={attendees}
+                    onChange={e => setAttendees(e.target.value)}
+                    placeholder=" "
+                    className="h-[52px]"
+                  />
+                  <label htmlFor="attendees-input">Attendees</label>
+                </div>
+                <p className="text-[11px] text-muted-foreground mt-1 ml-1">Helps assign owners automatically</p>
+              </div>
+
+              <div>
+                <div className="floating-label-group">
+                  <input
+                    id="date-input"
+                    value={meetingDate}
+                    onChange={e => setMeetingDate(e.target.value)}
+                    placeholder=" "
+                    className="h-[52px]"
+                  />
+                  <label htmlFor="date-input">Meeting date</label>
+                </div>
+                <p className="text-[11px] text-muted-foreground mt-1 ml-1">e.g. 12 Jun 2025 — resolves "tomorrow", "Friday"</p>
+              </div>
+
+              {/* Transcript */}
+              <div className="flex-1 flex flex-col min-h-0">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-medium text-muted-foreground">Transcript</span>
+                  <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-[11px] h-6 px-2.5 text-muted-foreground hover:text-foreground"
+                      onClick={() => setTranscript(DEMO_TRANSCRIPT)}
+                    >
+                      Example
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-[11px] h-6 px-2.5 text-muted-foreground hover:text-foreground"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <Upload className="h-3 w-3 mr-1" /> Upload .txt
+                    </Button>
+                  </div>
+                  <input ref={fileInputRef} type="file" accept=".txt" className="hidden" onChange={handleFileUpload} />
+                </div>
+                <div className="relative flex-1 min-h-[200px]">
+                  <textarea
+                    ref={transcriptRef}
+                    value={transcript}
+                    onChange={e => setTranscript(e.target.value)}
+                    placeholder={"Paste your meeting transcript here...\nOr load an example →"}
+                    className="transcript-textarea w-full h-full rounded-lg border border-input bg-transparent px-3.5 py-3 text-sm resize-none transition-colors placeholder:text-muted-foreground/60"
+                  />
+                  {wc > 0 && (
+                    <span className="absolute bottom-2.5 right-3 text-[10px] text-muted-foreground/50 pointer-events-none">
+                      {wc} words
+                    </span>
+                  )}
+                </div>
+                {hasRelativeDates && (
+                  <p className="text-[11px] text-confidence-medium mt-1.5 flex items-center gap-1">
+                    <AlertTriangle className="h-3 w-3" />
+                    Relative dates detected — add meeting date to resolve them.
+                  </p>
+                )}
+              </div>
+
+              {/* Generate area */}
+              <div className="pt-1 space-y-2.5">
+                <p className="text-[11px] text-muted-foreground italic">
+                  We avoid guessing owners or deadlines. Unclear items go to Things to confirm.
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleGenerate}
+                    disabled={isProcessing}
+                    className={`generate-btn flex-1 h-12 rounded-lg text-primary-foreground font-medium text-sm flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${isProcessing ? 'loading' : ''}`}
+                  >
+                    {isProcessing ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Zap className="h-4 w-4" />
+                    )}
+                    {isProcessing ? "Processing…" : "Generate outputs"}
+                  </button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-12 w-12 shrink-0 border-border/60"
+                    onClick={handleClear}
+                    title="Clear all"
+                  >
+                    <Eraser className="h-4 w-4" />
                   </Button>
                 </div>
-                <input ref={fileInputRef} type="file" accept=".txt" className="hidden" onChange={handleFileUpload} />
               </div>
-              <Textarea
-                ref={transcriptRef}
-                value={transcript}
-                onChange={e => setTranscript(e.target.value)}
-                placeholder="Paste meeting transcript here…"
-                className="flex-1 min-h-[250px] text-sm font-mono resize-none"
-              />
-              {hasRelativeDates && (
-                <p className="text-[11px] text-confidence-medium mt-1 flex items-center gap-1">
-                  <AlertTriangle className="h-3 w-3" />
-                  Relative dates detected — add meeting date to resolve them.
-                </p>
-              )}
             </div>
           </div>
-          <div className="p-3 border-t space-y-2">
-            <p className="text-[10px] text-muted-foreground">
-              We avoid guessing owners or deadlines. Unclear items → Things to confirm.
-            </p>
-            <div className="flex gap-2">
-              <Button onClick={handleGenerate} disabled={isProcessing} className="flex-1 font-mono text-sm h-9">
-                {isProcessing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Zap className="h-4 w-4 mr-2" />}
-                {isProcessing ? "Processing…" : "Generate"}
-              </Button>
-              <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" onClick={handleClear} title="Clear all">
-                <Eraser className="h-4 w-4" />
-              </Button>
-            </div>
+
+          {/* Subtle divider */}
+          <div className="w-px bg-border/30" />
+
+          {/* Right: Outputs */}
+          <div className="flex-1 flex flex-col overflow-hidden bg-background">
+            {!hasOutputs ? (
+              /* Empty state */
+              <div className="flex-1 flex items-center justify-center">
+                <div className="text-center max-w-sm">
+                  {/* 3-step visual */}
+                  <div className="flex items-center justify-center gap-0 mb-8">
+                    {[
+                      { num: 1, label: "Paste transcript" },
+                      { num: 2, label: "Hit Generate" },
+                      { num: 3, label: "Review & export" },
+                    ].map((step, i) => (
+                      <div key={step.num} className="flex items-center">
+                        {i > 0 && <div className="w-10 h-px bg-border/50 mx-1" />}
+                        <div className="flex flex-col items-center gap-1.5">
+                          <div className="w-8 h-8 rounded-full border border-border/60 flex items-center justify-center text-xs font-medium text-muted-foreground">
+                            {step.num}
+                          </div>
+                          <span className="text-[11px] text-muted-foreground whitespace-nowrap">{step.label}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Value chips */}
+                  <div className="flex items-center justify-center gap-2 mb-8">
+                    {[
+                      { icon: CheckCircle2, label: "Commitments only" },
+                      { icon: Eye, label: "Evidence shown" },
+                      { icon: FileText, label: "Export-ready" },
+                    ].map(({ icon: Icon, label }) => (
+                      <span key={label} className="flex items-center gap-1.5 text-[11px] text-muted-foreground/70 px-2.5 py-1 rounded-full border border-border/40 bg-surface/50">
+                        <Icon className="h-3 w-3 text-primary/60" />
+                        {label}
+                      </span>
+                    ))}
+                  </div>
+
+                  {/* Shortcut badge */}
+                  <p className="text-[11px] text-muted-foreground/50">
+                    Press{" "}
+                    <kbd className="px-1.5 py-0.5 rounded border border-border/60 bg-muted/50 text-[10px]">/</kbd>
+                    {" "}for commands
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <>
+                <OutputHeader
+                  taskCount={tasks.length}
+                  decisionCount={decisions.length}
+                  confirmCount={questions.length}
+                  lowConfidenceCount={lowConfidenceCount}
+                  filterLow={filterLow}
+                  onToggleFilterLow={() => setFilterLow(v => !v)}
+                  viewMode={viewMode}
+                  onToggleViewMode={() => setViewMode(v => v === "clean" ? "review" : "clean")}
+                  onRegenerate={handleRegenerate}
+                  isProcessing={isProcessing}
+                  validationFailed={currentRun?.validation_status === "fail"}
+                />
+
+                <Tabs defaultValue="tasks" className="flex-1 flex flex-col overflow-hidden">
+                  <TabsList className="mx-4 mt-2 bg-muted/30 self-start border border-border/30">
+                    <TabsTrigger value="tasks" className="text-xs gap-1.5 data-[state=active]:bg-card">
+                      Tasks <span className="text-muted-foreground">({tasks.length})</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="decisions" className="text-xs gap-1.5 data-[state=active]:bg-card">
+                      Decisions <span className="text-muted-foreground">({decisions.length})</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="confirm" className="text-xs gap-1.5 data-[state=active]:bg-card">
+                      Things to confirm <span className="text-muted-foreground">({questions.length})</span>
+                    </TabsTrigger>
+                  </TabsList>
+
+                  <div className="flex-1 overflow-auto p-4 custom-scrollbar">
+                    <TabsContent value="tasks" className="mt-0">
+                      <div className="flex gap-1.5 mb-3">
+                        <button
+                          onClick={() => setFilterUnassigned(v => !v)}
+                          className={`flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-full border transition-colors ${filterUnassigned ? "bg-primary/10 text-primary border-primary/25" : "text-muted-foreground border-border/50 hover:border-primary/25"}`}
+                        >
+                          <User className="h-3 w-3" /> Unassigned
+                        </button>
+                        <button
+                          onClick={() => setFilterNoDate(v => !v)}
+                          className={`flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-full border transition-colors ${filterNoDate ? "bg-primary/10 text-primary border-primary/25" : "text-muted-foreground border-border/50 hover:border-primary/25"}`}
+                        >
+                          <Calendar className="h-3 w-3" /> No due date
+                        </button>
+                      </div>
+                      <TaskList
+                        tasks={tasks} onChange={setTasks}
+                        filterLowConfidence={filterLow} filterUnassigned={filterUnassigned} filterNoDate={filterNoDate}
+                        viewMode={viewMode}
+                        onConvertToConfirm={convertTaskToConfirm}
+                        onEvidenceClick={handleEvidenceClick}
+                      />
+                    </TabsContent>
+                    <TabsContent value="decisions" className="mt-0">
+                      <DecisionList
+                        decisions={decisions} onChange={setDecisions}
+                        filterLowConfidence={filterLow} viewMode={viewMode}
+                        onConvertToTask={convertDecisionToTask}
+                        onConvertToConfirm={convertDecisionToConfirm}
+                        onEvidenceClick={handleEvidenceClick}
+                      />
+                    </TabsContent>
+                    <TabsContent value="confirm" className="mt-0">
+                      <p className="text-[11px] text-muted-foreground mb-3 italic">Only blockers and missing info</p>
+                      <ConfirmList
+                        items={questions} onChange={setQuestions}
+                        filterLowConfidence={filterLow} viewMode={viewMode}
+                        onConvertToTask={convertConfirmToTask}
+                        onConvertToDecision={convertConfirmToDecision}
+                        onEvidenceClick={handleEvidenceClick}
+                      />
+                    </TabsContent>
+                  </div>
+                </Tabs>
+
+                {/* Footer */}
+                <div className="px-4 py-2.5 border-t border-border/40 flex items-center gap-2">
+                  <input
+                    value={editNotes}
+                    onChange={e => setEditNotes(e.target.value)}
+                    placeholder="Edit notes…"
+                    className="text-sm flex-1 h-8 rounded-md border border-input bg-transparent px-3 placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/50"
+                  />
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <Switch checked={heavyEdits} onCheckedChange={setHeavyEdits} className="scale-75" />
+                    <span className="text-[11px] text-muted-foreground">Heavy edits</span>
+                  </div>
+                  <div className="h-4 w-px bg-border/40" />
+                  <Button onClick={handleSaveEdits} size="sm" className="text-xs h-7 gap-1">
+                    <Save className="h-3 w-3" /> Save
+                  </Button>
+                  <Button onClick={handleCopy} variant="ghost" size="sm" className="text-xs h-7 gap-1 text-muted-foreground hover:text-foreground">
+                    <Copy className="h-3 w-3" /> Copy
+                  </Button>
+                  <Button onClick={handleExportMD} variant="ghost" size="sm" className="text-xs h-7 gap-1 text-muted-foreground hover:text-foreground">
+                    <FileText className="h-3 w-3" /> MD
+                  </Button>
+                  <Button onClick={handleExportJSON} variant="ghost" size="sm" className="text-xs h-7 gap-1 text-muted-foreground hover:text-foreground">
+                    <FileJson className="h-3 w-3" /> JSON
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
-        </div>
-
-        {/* Right: Outputs */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {!hasOutputs ? (
-            <div className="flex-1 flex items-center justify-center">
-              <div className="text-center text-muted-foreground max-w-xs">
-                <Zap className="h-12 w-12 mx-auto mb-4 opacity-15" />
-                <p className="text-sm font-mono mb-1">Paste a transcript and hit Generate</p>
-                <p className="text-[11px] opacity-50">
-                  Press <kbd className="px-1.5 py-0.5 rounded border bg-muted text-[10px] font-mono">/</kbd> for commands
-                </p>
-              </div>
-            </div>
-          ) : (
-            <>
-              <OutputHeader
-                taskCount={tasks.length}
-                decisionCount={decisions.length}
-                confirmCount={questions.length}
-                lowConfidenceCount={lowConfidenceCount}
-                filterLow={filterLow}
-                onToggleFilterLow={() => setFilterLow(v => !v)}
-                viewMode={viewMode}
-                onToggleViewMode={() => setViewMode(v => v === "clean" ? "review" : "clean")}
-                onRegenerate={handleRegenerate}
-                isProcessing={isProcessing}
-                validationFailed={currentRun?.validation_status === "fail"}
-              />
-
-              <Tabs defaultValue="tasks" className="flex-1 flex flex-col overflow-hidden">
-                <TabsList className="mx-4 mt-2 bg-muted/50 self-start">
-                  <TabsTrigger value="tasks" className="text-xs font-mono gap-1.5">
-                    Tasks <span className="text-muted-foreground">({tasks.length})</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="decisions" className="text-xs font-mono gap-1.5">
-                    Decisions <span className="text-muted-foreground">({decisions.length})</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="confirm" className="text-xs font-mono gap-1.5">
-                    Things to confirm <span className="text-muted-foreground">({questions.length})</span>
-                  </TabsTrigger>
-                </TabsList>
-
-                <div className="flex-1 overflow-auto p-4">
-                  <TabsContent value="tasks" className="mt-0">
-                    {/* Filter chips */}
-                    <div className="flex gap-1.5 mb-3">
-                      <button
-                        onClick={() => setFilterUnassigned(v => !v)}
-                        className={`flex items-center gap-1 text-[11px] font-mono px-2 py-1 rounded-full border transition-colors ${filterUnassigned ? "bg-primary/15 text-primary border-primary/30" : "text-muted-foreground border-border hover:border-primary/30"}`}
-                      >
-                        <User className="h-3 w-3" /> Unassigned
-                      </button>
-                      <button
-                        onClick={() => setFilterNoDate(v => !v)}
-                        className={`flex items-center gap-1 text-[11px] font-mono px-2 py-1 rounded-full border transition-colors ${filterNoDate ? "bg-primary/15 text-primary border-primary/30" : "text-muted-foreground border-border hover:border-primary/30"}`}
-                      >
-                        <Calendar className="h-3 w-3" /> No due date
-                      </button>
-                    </div>
-                    <TaskList
-                      tasks={tasks} onChange={setTasks}
-                      filterLowConfidence={filterLow} filterUnassigned={filterUnassigned} filterNoDate={filterNoDate}
-                      viewMode={viewMode}
-                      onConvertToConfirm={convertTaskToConfirm}
-                      onEvidenceClick={handleEvidenceClick}
-                    />
-                  </TabsContent>
-                  <TabsContent value="decisions" className="mt-0">
-                    <DecisionList
-                      decisions={decisions} onChange={setDecisions}
-                      filterLowConfidence={filterLow} viewMode={viewMode}
-                      onConvertToTask={convertDecisionToTask}
-                      onConvertToConfirm={convertDecisionToConfirm}
-                      onEvidenceClick={handleEvidenceClick}
-                    />
-                  </TabsContent>
-                  <TabsContent value="confirm" className="mt-0">
-                    <p className="text-[11px] text-muted-foreground mb-3 font-mono">Only blockers / missing info</p>
-                    <ConfirmList
-                      items={questions} onChange={setQuestions}
-                      filterLowConfidence={filterLow} viewMode={viewMode}
-                      onConvertToTask={convertConfirmToTask}
-                      onConvertToDecision={convertConfirmToDecision}
-                      onEvidenceClick={handleEvidenceClick}
-                    />
-                  </TabsContent>
-                </div>
-              </Tabs>
-
-              {/* Footer */}
-              <div className="px-4 py-2.5 border-t flex items-center gap-2">
-                <Input value={editNotes} onChange={e => setEditNotes(e.target.value)} placeholder="Edit notes…" className="text-sm flex-1 h-8" />
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <Switch checked={heavyEdits} onCheckedChange={setHeavyEdits} className="scale-75" />
-                  <span className="text-[11px] font-mono text-muted-foreground">Heavy edits</span>
-                </div>
-                <div className="h-4 w-px bg-border" />
-                <Button onClick={handleSaveEdits} size="sm" className="font-mono text-xs h-7">
-                  <Save className="h-3 w-3 mr-1" /> Save
-                </Button>
-                <Button onClick={handleCopy} variant="outline" size="sm" className="font-mono text-xs h-7">
-                  <Copy className="h-3 w-3 mr-1" /> Copy
-                </Button>
-                <Button onClick={handleExportMD} variant="outline" size="sm" className="font-mono text-xs h-7">
-                  <FileText className="h-3 w-3 mr-1" /> MD
-                </Button>
-                <Button onClick={handleExportJSON} variant="outline" size="sm" className="font-mono text-xs h-7">
-                  <FileJson className="h-3 w-3 mr-1" /> JSON
-                </Button>
-              </div>
-            </>
-          )}
         </div>
       </div>
-    </div>
+    </TooltipProvider>
   );
 }
 
