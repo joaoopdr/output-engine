@@ -93,7 +93,12 @@
 }
 
 .floating-label-group input {
-  @apply peer w-full rounded-lg border border-input bg-transparent px-3.5 pt-5 pb-2 text-sm text-foreground transition-colors placeholder-transparent;
+  @apply w-full rounded-lg border border-input bg-transparent px-3.5 pt-5 pb-2 text-sm text-foreground transition-colors;
+  color-scheme: dark;
+}
+
+.floating-label-group input::placeholder {
+  color: transparent;
 }
 
 .floating-label-group input:focus {
@@ -106,9 +111,12 @@
   @apply absolute left-3.5 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none transition-all duration-200;
 }
 
-.floating-label-group input:focus ~ label,
-.floating-label-group input:not(:placeholder-shown) ~ label {
-  @apply top-2.5 translate-y-0 text-[11px] font-medium;
+.floating-label-group input:focus + label,
+.floating-label-group input:not(:placeholder-shown) + label {
+  top: 0.625rem;
+  transform: translateY(0);
+  font-size: 11px;
+  font-weight: 500;
   color: hsl(var(--primary));
 }
 
