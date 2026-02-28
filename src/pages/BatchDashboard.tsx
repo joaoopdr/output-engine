@@ -189,8 +189,8 @@ export default function BatchDashboard() {
                 <tr><td colSpan={8} className="text-center py-8 text-muted-foreground font-mono text-xs">No runs yet. Upload .txt transcripts to start.</td></tr>
               ) : runs.map((r) => (
                 <tr key={r.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
-                  <td className="px-4 py-2 font-medium truncate max-w-[200px]">{r.title || r.transcript_case_id.slice(0, 8)}</td>
-                  <td className="text-center px-3 py-2">
+                  <td className="px-4 py-1.5 font-medium truncate max-w-[200px]">{r.title || r.transcript_case_id.slice(0, 8)}</td>
+                  <td className="text-center px-3 py-1.5">
                     {r.validation_status === "ok" ? (
                       <CheckCircle className="h-4 w-4 text-confidence-high inline" />
                     ) : r.validation_status === "fail" ? (
