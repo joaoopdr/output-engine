@@ -199,10 +199,10 @@ export default function BatchDashboard() {
                       <AlertTriangle className="h-4 w-4 text-confidence-medium inline" />
                     )}
                   </td>
-                  <td className="text-center px-3 py-2 font-mono">{r.task_count}</td>
-                  <td className="text-center px-3 py-2 font-mono">{r.decision_count}</td>
-                  <td className="text-center px-3 py-2 font-mono">{r.question_count}</td>
-                  <td className="text-center px-3 py-2">
+                  <td className="text-center px-3 py-1.5 font-mono">{r.task_count}</td>
+                  <td className="text-center px-3 py-1.5 font-mono">{r.decision_count}</td>
+                  <td className="text-center px-3 py-1.5 font-mono">{r.question_count}</td>
+                  <td className="text-center px-3 py-1.5">
                     {r.low_confidence_count > 0 ? (
                       <span className="text-confidence-low font-mono">{r.low_confidence_count}</span>
                     ) : (
