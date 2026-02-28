@@ -26,19 +26,22 @@ export function OutputHeader({
   onRegenerate, isProcessing, validationFailed,
 }: Props) {
   return (
-    <div className="px-4 py-2 border-b border-border/40 flex items-center gap-3">
+    <div>
+      {/* Top accent line */}
+      <div className="h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+      <div className="px-4 py-2 border-b border-border/40 flex items-center gap-3">
       {/* Counts */}
       <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
         <span>
-          <span className="text-foreground font-medium">{taskCount}</span> tasks
+          <span className="text-sm font-semibold text-foreground">{taskCount}</span> tasks
         </span>
         <span className="text-border">·</span>
         <span>
-          <span className="text-foreground font-medium">{decisionCount}</span> decisions
+          <span className="text-sm font-semibold text-foreground">{decisionCount}</span> decisions
         </span>
         <span className="text-border">·</span>
         <span>
-          <span className="text-foreground font-medium">{confirmCount}</span> to confirm
+          <span className="text-sm font-semibold text-foreground">{confirmCount}</span> to confirm
         </span>
       </div>
 
