@@ -209,7 +209,7 @@ export default function BatchDashboard() {
                       <span className="text-muted-foreground font-mono">0</span>
                     )}
                   </td>
-                  <td className="text-center px-3 py-2">
+                  <td className="text-center px-3 py-1.5">
                     <button
                       onClick={() => toggleHeavyEdits(r.id)}
                       className={`text-xs font-mono px-2 py-0.5 rounded border transition-colors ${r.heavy_edits ? "bg-destructive/10 text-destructive border-destructive/30" : "bg-muted text-muted-foreground border-transparent hover:border-border"}`}
