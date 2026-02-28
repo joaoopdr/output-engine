@@ -312,7 +312,7 @@ export default function Index() {
                   </div>
                   <input ref={fileInputRef} type="file" accept=".txt" className="hidden" onChange={handleFileUpload} />
                 </div>
-                <div className="relative flex-1 min-h-[200px]">
+                <div className="relative flex-1 min-h-[240px]">
                   <textarea
                     ref={transcriptRef}
                     value={transcript}
