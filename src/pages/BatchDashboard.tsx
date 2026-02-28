@@ -231,9 +231,9 @@ export default function BatchDashboard() {
 }
 
 function MetricCard({ label, value, subtitle, variant = "default" }: { label: string; value: string | number; subtitle?: string; variant?: "default" | "success" | "warning" }) {
-  const borderClass = variant === "success" ? "border-confidence-high/30" : variant === "warning" ? "border-confidence-low/30" : "";
+  const topBorderClass = variant === "success" ? "border-t-2 border-t-[hsl(var(--confidence-high)/0.5)]" : variant === "warning" ? "border-t-2 border-t-[hsl(var(--confidence-low)/0.5)]" : "border-t-2 border-t-border/50";
   return (
-    <div className={`rounded-lg border bg-card p-4 ${borderClass}`}>
+    <div className={`rounded-lg border bg-card p-4 ${topBorderClass}`}>
       <p className="text-xs font-mono text-muted-foreground mb-1">{label}</p>
       <p className="text-2xl font-semibold font-mono">{value}</p>
       {subtitle && <p className="text-xs font-mono text-muted-foreground">{subtitle}</p>}
