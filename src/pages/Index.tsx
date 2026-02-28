@@ -440,15 +440,15 @@ export default function Index() {
                 />
 
                 <Tabs defaultValue="tasks" className="flex-1 flex flex-col overflow-hidden">
-                  <TabsList className="mx-4 mt-2 bg-muted/30 self-start border border-border/30">
-                    <TabsTrigger value="tasks" className="text-xs gap-1.5 data-[state=active]:bg-card">
-                      Tasks <span className="text-muted-foreground">({tasks.length})</span>
+                  <TabsList className="mx-4 mt-2 bg-transparent self-start border-0 border-b border-border/40 rounded-none p-0 gap-0">
+                    <TabsTrigger value="tasks" className="text-xs gap-1.5 rounded-none border-b-2 border-transparent data-[state=active]:border-b-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground text-muted-foreground hover:text-foreground/70 px-4 pb-2.5 pt-1.5">
+                      Tasks <span className="opacity-60">({tasks.length})</span>
                     </TabsTrigger>
-                    <TabsTrigger value="decisions" className="text-xs gap-1.5 data-[state=active]:bg-card">
-                      Decisions <span className="text-muted-foreground">({decisions.length})</span>
+                    <TabsTrigger value="decisions" className="text-xs gap-1.5 rounded-none border-b-2 border-transparent data-[state=active]:border-b-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground text-muted-foreground hover:text-foreground/70 px-4 pb-2.5 pt-1.5">
+                      Decisions <span className="opacity-60">({decisions.length})</span>
                     </TabsTrigger>
-                    <TabsTrigger value="confirm" className="text-xs gap-1.5 data-[state=active]:bg-card">
-                      Things to confirm <span className="text-muted-foreground">({questions.length})</span>
+                    <TabsTrigger value="confirm" className="text-xs gap-1.5 rounded-none border-b-2 border-transparent data-[state=active]:border-b-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground text-muted-foreground hover:text-foreground/70 px-4 pb-2.5 pt-1.5">
+                      Things to confirm <span className="opacity-60">({questions.length})</span>
                     </TabsTrigger>
                   </TabsList>
 
