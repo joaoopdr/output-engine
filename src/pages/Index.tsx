@@ -246,8 +246,8 @@ export default function Index() {
 
         <div className="flex" style={{ height: "calc(100vh - 41px)" }}>
           {/* Left: Input Panel */}
-          <div className="w-[420px] border-r border-border/40 flex flex-col shrink-0 bg-background">
-            <div className="p-5 space-y-4 flex-1 flex flex-col overflow-auto custom-scrollbar">
+          <div className="w-[460px] border-r border-border/40 flex flex-col shrink-0 bg-background">
+            <div className="px-6 pt-6 pb-4 space-y-4 flex-1 flex flex-col overflow-auto custom-scrollbar">
               {/* Floating label inputs */}
               <div className="floating-label-group">
                 <input
@@ -312,7 +312,7 @@ export default function Index() {
                   </div>
                   <input ref={fileInputRef} type="file" accept=".txt" className="hidden" onChange={handleFileUpload} />
                 </div>
-                <div className="relative flex-1 min-h-[200px]">
+                <div className="relative flex-1 min-h-[240px]">
                   <textarea
                     ref={transcriptRef}
                     value={transcript}
@@ -343,19 +343,26 @@ export default function Index() {
                   <button
                     onClick={handleGenerate}
                     disabled={isProcessing}
-                    className={`generate-btn flex-1 h-12 rounded-lg text-primary-foreground font-medium text-sm flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${isProcessing ? 'loading' : ''}`}
+                    className={`generate-btn flex-1 h-[52px] rounded-lg text-primary-foreground font-medium text-sm tracking-wide flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${isProcessing ? 'loading' : ''}`}
                   >
                     {isProcessing ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span className="flex items-center gap-1.5">
+                        Generating
+                        <span className="inline-flex gap-0.5">
+                          <span className="w-1 h-1 rounded-full bg-primary-foreground animate-pulse" style={{ animationDelay: "0ms" }} />
+                          <span className="w-1 h-1 rounded-full bg-primary-foreground animate-pulse" style={{ animationDelay: "150ms" }} />
+                          <span className="w-1 h-1 rounded-full bg-primary-foreground animate-pulse" style={{ animationDelay: "300ms" }} />
+                        </span>
+                      </span>
                     ) : (
                       <Zap className="h-4 w-4" />
                     )}
-                    {isProcessing ? "Processing…" : "Generate outputs"}
+                    {isProcessing ? "" : "Generate outputs"}
                   </button>
                   <Button
                     variant="outline"
                     size="icon"
-                    className="h-12 w-12 shrink-0 border-border/60"
+                    className="h-[52px] w-[52px] shrink-0 border-border/60"
                     onClick={handleClear}
                     title="Clear all"
                   >
@@ -383,9 +390,9 @@ export default function Index() {
                       { num: 3, label: "Review & export" },
                     ].map((step, i) => (
                       <div key={step.num} className="flex items-center">
-                        {i > 0 && <div className="w-10 h-px bg-border/50 mx-1" />}
+                        {i > 0 && <div className="w-10 h-px bg-primary/20 mx-1" />}
                         <div className="flex flex-col items-center gap-1.5">
-                          <div className="w-8 h-8 rounded-full border border-border/60 flex items-center justify-center text-xs font-medium text-muted-foreground">
+                          <div className="w-8 h-8 rounded-full border border-primary/40 flex items-center justify-center text-xs font-medium text-primary">
                             {step.num}
                           </div>
                           <span className="text-[11px] text-muted-foreground whitespace-nowrap">{step.label}</span>
@@ -401,7 +408,7 @@ export default function Index() {
                       { icon: Eye, label: "Evidence shown" },
                       { icon: FileText, label: "Export-ready" },
                     ].map(({ icon: Icon, label }) => (
-                      <span key={label} className="flex items-center gap-1.5 text-[11px] text-muted-foreground/70 px-2.5 py-1 rounded-full border border-border/40 bg-surface/50">
+                      <span key={label} className="flex items-center gap-1.5 text-[11px] text-muted-foreground/70 px-2.5 py-1 rounded-full border border-border/40 bg-primary/5">
                         <Icon className="h-3 w-3 text-primary/60" />
                         {label}
                       </span>
@@ -433,15 +440,15 @@ export default function Index() {
                 />
 
                 <Tabs defaultValue="tasks" className="flex-1 flex flex-col overflow-hidden">
-                  <TabsList className="mx-4 mt-2 bg-muted/30 self-start border border-border/30">
-                    <TabsTrigger value="tasks" className="text-xs gap-1.5 data-[state=active]:bg-card">
-                      Tasks <span className="text-muted-foreground">({tasks.length})</span>
+                  <TabsList className="mx-4 mt-2 bg-transparent self-start border-0 border-b border-border/40 rounded-none p-0 gap-0">
+                    <TabsTrigger value="tasks" className="text-xs gap-1.5 rounded-none border-b-2 border-transparent data-[state=active]:border-b-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground text-muted-foreground hover:text-foreground/70 px-4 pb-2.5 pt-1.5">
+                      Tasks <span className="opacity-60">({tasks.length})</span>
                     </TabsTrigger>
-                    <TabsTrigger value="decisions" className="text-xs gap-1.5 data-[state=active]:bg-card">
-                      Decisions <span className="text-muted-foreground">({decisions.length})</span>
+                    <TabsTrigger value="decisions" className="text-xs gap-1.5 rounded-none border-b-2 border-transparent data-[state=active]:border-b-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground text-muted-foreground hover:text-foreground/70 px-4 pb-2.5 pt-1.5">
+                      Decisions <span className="opacity-60">({decisions.length})</span>
                     </TabsTrigger>
-                    <TabsTrigger value="confirm" className="text-xs gap-1.5 data-[state=active]:bg-card">
-                      Things to confirm <span className="text-muted-foreground">({questions.length})</span>
+                    <TabsTrigger value="confirm" className="text-xs gap-1.5 rounded-none border-b-2 border-transparent data-[state=active]:border-b-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground text-muted-foreground hover:text-foreground/70 px-4 pb-2.5 pt-1.5">
+                      Things to confirm <span className="opacity-60">({questions.length})</span>
                     </TabsTrigger>
                   </TabsList>
 
@@ -497,25 +504,31 @@ export default function Index() {
                     value={editNotes}
                     onChange={e => setEditNotes(e.target.value)}
                     placeholder="Edit notes…"
-                    className="text-sm flex-1 h-8 rounded-md border border-input bg-transparent px-3 placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/50"
+                    className="text-sm flex-1 h-7 rounded-md border border-input bg-transparent px-3 placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/50"
                   />
                   <div className="flex items-center gap-1.5 shrink-0">
                     <Switch checked={heavyEdits} onCheckedChange={setHeavyEdits} className="scale-75" />
                     <span className="text-[11px] text-muted-foreground">Heavy edits</span>
                   </div>
                   <div className="h-4 w-px bg-border/40" />
-                  <Button onClick={handleSaveEdits} size="sm" className="text-xs h-7 gap-1">
+                  <div className="flex items-center gap-0.5 border border-border/40 rounded-md px-0.5">
+                    <Button onClick={handleCopy} variant="ghost" size="sm" className="text-xs h-7 gap-1 text-muted-foreground hover:text-foreground">
+                      <Copy className="h-3 w-3" /> Copy
+                    </Button>
+                    <Button onClick={handleExportMD} variant="ghost" size="sm" className="text-xs h-7 gap-1 text-muted-foreground hover:text-foreground">
+                      <FileText className="h-3 w-3" /> MD
+                    </Button>
+                    <Button onClick={handleExportJSON} variant="ghost" size="sm" className="text-xs h-7 gap-1 text-muted-foreground hover:text-foreground">
+                      <FileJson className="h-3 w-3" /> JSON
+                    </Button>
+                  </div>
+                  <div className="h-4 w-px bg-border/40" />
+                  <button
+                    onClick={handleSaveEdits}
+                    className="generate-btn h-7 px-3 rounded-md text-primary-foreground text-xs font-medium flex items-center gap-1"
+                  >
                     <Save className="h-3 w-3" /> Save
-                  </Button>
-                  <Button onClick={handleCopy} variant="ghost" size="sm" className="text-xs h-7 gap-1 text-muted-foreground hover:text-foreground">
-                    <Copy className="h-3 w-3" /> Copy
-                  </Button>
-                  <Button onClick={handleExportMD} variant="ghost" size="sm" className="text-xs h-7 gap-1 text-muted-foreground hover:text-foreground">
-                    <FileText className="h-3 w-3" /> MD
-                  </Button>
-                  <Button onClick={handleExportJSON} variant="ghost" size="sm" className="text-xs h-7 gap-1 text-muted-foreground hover:text-foreground">
-                    <FileJson className="h-3 w-3" /> JSON
-                  </Button>
+                  </button>
                 </div>
               </>
             )}

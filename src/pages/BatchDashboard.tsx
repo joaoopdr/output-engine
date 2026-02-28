@@ -171,7 +171,7 @@ export default function BatchDashboard() {
         <div className="rounded-lg border bg-card overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b bg-muted/50">
+              <tr className="border-b bg-muted/80 sticky top-0 z-10">
                 <th className="text-left px-4 py-2 font-mono text-xs text-muted-foreground">Title</th>
                 <th className="text-center px-3 py-2 font-mono text-xs text-muted-foreground">Status</th>
                 <th className="text-center px-3 py-2 font-mono text-xs text-muted-foreground">Tasks</th>
@@ -189,8 +189,8 @@ export default function BatchDashboard() {
                 <tr><td colSpan={8} className="text-center py-8 text-muted-foreground font-mono text-xs">No runs yet. Upload .txt transcripts to start.</td></tr>
               ) : runs.map((r) => (
                 <tr key={r.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
-                  <td className="px-4 py-2 font-medium truncate max-w-[200px]">{r.title || r.transcript_case_id.slice(0, 8)}</td>
-                  <td className="text-center px-3 py-2">
+                  <td className="px-4 py-1.5 font-medium truncate max-w-[200px]">{r.title || r.transcript_case_id.slice(0, 8)}</td>
+                  <td className="text-center px-3 py-1.5">
                     {r.validation_status === "ok" ? (
                       <CheckCircle className="h-4 w-4 text-confidence-high inline" />
                     ) : r.validation_status === "fail" ? (
@@ -199,17 +199,17 @@ export default function BatchDashboard() {
                       <AlertTriangle className="h-4 w-4 text-confidence-medium inline" />
                     )}
                   </td>
-                  <td className="text-center px-3 py-2 font-mono">{r.task_count}</td>
-                  <td className="text-center px-3 py-2 font-mono">{r.decision_count}</td>
-                  <td className="text-center px-3 py-2 font-mono">{r.question_count}</td>
-                  <td className="text-center px-3 py-2">
+                  <td className="text-center px-3 py-1.5 font-mono">{r.task_count}</td>
+                  <td className="text-center px-3 py-1.5 font-mono">{r.decision_count}</td>
+                  <td className="text-center px-3 py-1.5 font-mono">{r.question_count}</td>
+                  <td className="text-center px-3 py-1.5">
                     {r.low_confidence_count > 0 ? (
                       <span className="text-confidence-low font-mono">{r.low_confidence_count}</span>
                     ) : (
                       <span className="text-muted-foreground font-mono">0</span>
                     )}
                   </td>
-                  <td className="text-center px-3 py-2">
+                  <td className="text-center px-3 py-1.5">
                     <button
                       onClick={() => toggleHeavyEdits(r.id)}
                       className={`text-xs font-mono px-2 py-0.5 rounded border transition-colors ${r.heavy_edits ? "bg-destructive/10 text-destructive border-destructive/30" : "bg-muted text-muted-foreground border-transparent hover:border-border"}`}
@@ -217,7 +217,7 @@ export default function BatchDashboard() {
                       {r.heavy_edits ? "Yes" : "No"}
                     </button>
                   </td>
-                  <td className="text-right px-4 py-2 text-muted-foreground text-xs font-mono">
+                  <td className="text-right px-4 py-1.5 text-muted-foreground text-xs font-mono">
                     {new Date(r.created_at).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
                   </td>
                 </tr>
@@ -231,9 +231,9 @@ export default function BatchDashboard() {
 }
 
 function MetricCard({ label, value, subtitle, variant = "default" }: { label: string; value: string | number; subtitle?: string; variant?: "default" | "success" | "warning" }) {
-  const borderClass = variant === "success" ? "border-confidence-high/30" : variant === "warning" ? "border-confidence-low/30" : "";
+  const topBorderClass = variant === "success" ? "border-t-2 border-t-[hsl(var(--confidence-high)/0.5)]" : variant === "warning" ? "border-t-2 border-t-[hsl(var(--confidence-low)/0.5)]" : "border-t-2 border-t-border/50";
   return (
-    <div className={`rounded-lg border bg-card p-4 ${borderClass}`}>
+    <div className={`rounded-lg border bg-card p-4 ${topBorderClass}`}>
       <p className="text-xs font-mono text-muted-foreground mb-1">{label}</p>
       <p className="text-2xl font-semibold font-mono">{value}</p>
       {subtitle && <p className="text-xs font-mono text-muted-foreground">{subtitle}</p>}
