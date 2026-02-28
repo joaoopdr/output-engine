@@ -246,8 +246,8 @@ export default function Index() {
 
         <div className="flex" style={{ height: "calc(100vh - 41px)" }}>
           {/* Left: Input Panel */}
-          <div className="w-[420px] border-r border-border/40 flex flex-col shrink-0 bg-background">
-            <div className="p-5 space-y-4 flex-1 flex flex-col overflow-auto custom-scrollbar">
+          <div className="w-[460px] border-r border-border/40 flex flex-col shrink-0 bg-background">
+            <div className="px-6 pt-6 pb-4 space-y-4 flex-1 flex flex-col overflow-auto custom-scrollbar">
               {/* Floating label inputs */}
               <div className="floating-label-group">
                 <input
