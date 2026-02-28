@@ -408,7 +408,7 @@ export default function Index() {
                       { icon: Eye, label: "Evidence shown" },
                       { icon: FileText, label: "Export-ready" },
                     ].map(({ icon: Icon, label }) => (
-                      <span key={label} className="flex items-center gap-1.5 text-[11px] text-muted-foreground/70 px-2.5 py-1 rounded-full border border-border/40 bg-surface/50">
+                      <span key={label} className="flex items-center gap-1.5 text-[11px] text-muted-foreground/70 px-2.5 py-1 rounded-full border border-border/40 bg-primary/5">
                         <Icon className="h-3 w-3 text-primary/60" />
                         {label}
                       </span>
