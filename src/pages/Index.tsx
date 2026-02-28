@@ -343,14 +343,21 @@ export default function Index() {
                   <button
                     onClick={handleGenerate}
                     disabled={isProcessing}
-                    className={`generate-btn flex-1 h-12 rounded-lg text-primary-foreground font-medium text-sm flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${isProcessing ? 'loading' : ''}`}
+                    className={`generate-btn flex-1 h-[52px] rounded-lg text-primary-foreground font-medium text-sm tracking-wide flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${isProcessing ? 'loading' : ''}`}
                   >
                     {isProcessing ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span className="flex items-center gap-1.5">
+                        Generating
+                        <span className="inline-flex gap-0.5">
+                          <span className="w-1 h-1 rounded-full bg-primary-foreground animate-pulse" style={{ animationDelay: "0ms" }} />
+                          <span className="w-1 h-1 rounded-full bg-primary-foreground animate-pulse" style={{ animationDelay: "150ms" }} />
+                          <span className="w-1 h-1 rounded-full bg-primary-foreground animate-pulse" style={{ animationDelay: "300ms" }} />
+                        </span>
+                      </span>
                     ) : (
                       <Zap className="h-4 w-4" />
                     )}
-                    {isProcessing ? "Processing…" : "Generate outputs"}
+                    {isProcessing ? "" : "Generate outputs"}
                   </button>
                   <Button
                     variant="outline"
