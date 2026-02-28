@@ -171,7 +171,7 @@ export default function BatchDashboard() {
         <div className="rounded-lg border bg-card overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b bg-muted/50">
+              <tr className="border-b bg-muted/80 sticky top-0 z-10">
                 <th className="text-left px-4 py-2 font-mono text-xs text-muted-foreground">Title</th>
                 <th className="text-center px-3 py-2 font-mono text-xs text-muted-foreground">Status</th>
                 <th className="text-center px-3 py-2 font-mono text-xs text-muted-foreground">Tasks</th>
