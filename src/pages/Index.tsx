@@ -487,6 +487,7 @@ export default function Index() {
                         tasks={tasks} onChange={setTasks}
                         filterLowConfidence={filterLow} filterUnassigned={filterUnassigned} filterNoDate={filterNoDate}
                         viewMode={viewMode}
+                        meetingDate={meetingDate}
                         onConvertToConfirm={convertTaskToConfirm}
                         onEvidenceClick={handleEvidenceClick}
                       />
