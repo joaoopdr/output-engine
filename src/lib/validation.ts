@@ -26,7 +26,7 @@ function isVerbFirst(title: string): boolean {
   return verbs.some(v => firstWord.startsWith(v));
 }
 
-export function validateModelOutput(raw: string): ValidationResult {
+export function validateModelOutput(raw: string, meetingDateISO?: string): ValidationResult {
   const errors: string[] = [];
 
   let parsed: any;
