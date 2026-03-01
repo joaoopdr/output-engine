@@ -10,6 +10,7 @@ import { ConfirmList } from "@/components/meeting/ConfirmList";
 import { OutputHeader } from "@/components/meeting/OutputHeader";
 import { CommandPalette } from "@/components/meeting/CommandPalette";
 import { exportAsMarkdown, exportAsJSON } from "@/lib/export";
+import { parseMeetingDate } from "@/lib/dateUtils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { MeetingTask, MeetingDecision, MeetingQuestion } from "@/types/meeting";
