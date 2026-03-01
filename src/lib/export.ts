@@ -44,6 +44,7 @@ export function exportAsJSON(
       title: t.title,
       owner: t.owner,
       due_date_text: t.due_date_text,
+      due_date_iso: t.due_date_iso || null,
       details: t.details || t.description_bullets || [],
       confidence: t.confidence,
       evidence: t.evidence || [],
