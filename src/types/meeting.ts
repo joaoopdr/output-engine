@@ -5,6 +5,9 @@ export interface MeetingTask {
   title: string;
   owner: string;
   due_date_text: string;
+  due_date_iso?: string | null;
+  due_date_display?: string;
+  due_date_confidence?: "exact" | "assumed" | "unresolved";
   description_bullets: string[];
   details: string[];
   confidence: Confidence;

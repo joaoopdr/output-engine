@@ -32,6 +32,7 @@ THINGS TO CONFIRM RULES (execution blockers only):
   * Unclear deadline when urgency is implied
   * Unresolved decision that determines next steps
   * Missing input needed to proceed (access, format, policy)
+- If a commitment was made but no deadline was discussed and the task seems time-sensitive, add a thing_to_confirm: 'What is the deadline for [task]?'
 - Do NOT include:
   * Naming/codename discussions
   * Jokes

@@ -47,7 +47,7 @@ export function useMeetingProcessor() {
       if (fnErr) throw new Error(fnErr.message || "Edge function error");
 
       const rawOutput = fnData?.raw_output || "";
-      const validation = validateModelOutput(rawOutput);
+      const validation = validateModelOutput(rawOutput, input.meeting_date);
 
       const { data: run, error: runErr } = await supabase
         .from("runs")
