@@ -15,6 +15,7 @@ TASK RULES (commitments only):
 - Use verb-first titles: "Send…", "Draft…", "Confirm…", "Investigate…"
 - One task = one owner. If unclear, owner = "Unassigned", confidence = "low".
 - Due dates only if explicitly stated. Otherwise empty string.
+- When extracting due dates, preserve the exact phrase used in the transcript (e.g., 'tonight', 'tomorrow morning', 'by Friday'). Do not normalize or invent dates. The frontend will resolve these to actual datetimes.
 - If later in transcript there's a decision to focus only on X, drop tasks outside X.
 - Merge micro-tasks into one parent task when appropriate; keep detail bullets.
 - Hard cap: 15 tasks unless transcript is very long. Prefer merging to dropping.
