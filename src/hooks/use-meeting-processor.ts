@@ -15,6 +15,7 @@ export function useMeetingProcessor() {
     attendees?: string;
     template_type: string;
     meeting_date?: string;
+    meeting_date_iso?: string;
   }) => {
     setIsProcessing(true);
     setParsedOutput(null);
