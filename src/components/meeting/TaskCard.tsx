@@ -117,7 +117,6 @@ export function TaskCard({
                     confidence={task.due_date_confidence}
                     meetingDate={meetingDate}
                     onUpdate={(text, iso) => {
-                      const { resolveDate } = require("@/lib/dateUtils");
                       const resolved = resolveDate(text, meetingDate);
                       onUpdate({
                         due_date_text: text,
