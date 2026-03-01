@@ -63,7 +63,6 @@ export function TaskCard({
             meetingDate={meetingDate}
             onUpdate={(text, iso) => {
               const resolved = resolveDate(text, meetingDate);
-              const resolved = resolveDate(text, meetingDate);
               onUpdate({
                 due_date_text: text,
                 due_date_iso: iso,
