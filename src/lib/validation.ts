@@ -1,4 +1,5 @@
 import type { ParsedOutput, Confidence, MeetingTask, MeetingDecision, MeetingQuestion } from "@/types/meeting";
+import { resolveDate } from "@/lib/dateUtils";
 
 const VALID_CONFIDENCE: Confidence[] = ["low", "medium", "high"];
 const MAX_TASKS = 15;
@@ -25,7 +26,7 @@ function isVerbFirst(title: string): boolean {
   return verbs.some(v => firstWord.startsWith(v));
 }
 
-export function validateModelOutput(raw: string): ValidationResult {
+export function validateModelOutput(raw: string, meetingDateISO?: string): ValidationResult {
   const errors: string[] = [];
 
   let parsed: any;
@@ -53,11 +54,16 @@ export function validateModelOutput(raw: string): ValidationResult {
     .map((t: any) => {
       const title = String(t.title || "");
       const confidence = VALID_CONFIDENCE.includes(t.confidence) ? t.confidence : "low";
+      const dueDateText = String(t.due_date_text || "");
+      const resolved = resolveDate(dueDateText, meetingDateISO);
       return {
         id: generateId(),
         title,
         owner: String(t.owner || "Unassigned"),
-        due_date_text: String(t.due_date_text || ""),
+        due_date_text: dueDateText,
+        due_date_iso: resolved.iso,
+        due_date_display: resolved.display,
+        due_date_confidence: resolved.confidence,
         description_bullets: Array.isArray(t.description_bullets) ? t.description_bullets.map(String) : [],
         details: Array.isArray(t.details) ? t.details.map(String) : (Array.isArray(t.description_bullets) ? t.description_bullets.map(String) : []),
         confidence: !isVerbFirst(title) && confidence === "high" ? "medium" as Confidence : confidence,

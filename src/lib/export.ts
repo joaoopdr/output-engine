@@ -11,8 +11,9 @@ export function exportAsMarkdown(
   md += "## Tasks\n\n";
   tasks.forEach((t) => {
     const owner = t.owner ? `[${t.owner}]` : "";
-    const due = t.due_date_text ? `[${t.due_date_text}]` : "";
-    md += `- ${owner} ${due} ${t.title}\n`.replace(/\s+/g, " ");
+    const due = t.due_date_display || t.due_date_text;
+    const dueStr = due ? `[${due}]` : "";
+    md += `- ${owner} ${dueStr} ${t.title}\n`.replace(/\s+/g, " ");
     (t.details || t.description_bullets || []).forEach((b) => {
       md += `  - ${b}\n`;
     });
@@ -43,6 +44,7 @@ export function exportAsJSON(
       title: t.title,
       owner: t.owner,
       due_date_text: t.due_date_text,
+      due_date_iso: t.due_date_iso || null,
       details: t.details || t.description_bullets || [],
       confidence: t.confidence,
       evidence: t.evidence || [],

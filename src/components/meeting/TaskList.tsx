@@ -11,13 +11,14 @@ interface Props {
   filterUnassigned?: boolean;
   filterNoDate?: boolean;
   viewMode: "clean" | "review";
+  meetingDate?: string;
   onConvertToConfirm?: (task: MeetingTask) => void;
   onEvidenceClick?: (snippet: string) => void;
 }
 
 export function TaskList({
   tasks, onChange, filterLowConfidence, filterUnassigned, filterNoDate,
-  viewMode, onConvertToConfirm, onEvidenceClick,
+  viewMode, meetingDate, onConvertToConfirm, onEvidenceClick,
 }: Props) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -86,6 +87,7 @@ export function TaskList({
           isEditing={editingId === task.id}
           isExpanded={expandedId === task.id}
           viewMode={viewMode}
+          meetingDate={meetingDate}
           onToggleExpand={() => setExpandedId(expandedId === task.id ? null : task.id)}
           onStartEdit={() => { setEditingId(task.id); setExpandedId(task.id); }}
           onStopEdit={() => setEditingId(null)}

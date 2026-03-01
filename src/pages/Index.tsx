@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
+import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMeetingProcessor } from "@/hooks/use-meeting-processor";
@@ -9,6 +10,7 @@ import { ConfirmList } from "@/components/meeting/ConfirmList";
 import { OutputHeader } from "@/components/meeting/OutputHeader";
 import { CommandPalette } from "@/components/meeting/CommandPalette";
 import { exportAsMarkdown, exportAsJSON } from "@/lib/export";
+import { parseMeetingDate } from "@/lib/dateUtils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { MeetingTask, MeetingDecision, MeetingQuestion } from "@/types/meeting";
@@ -61,6 +63,8 @@ export default function Index() {
 
   const hasRelativeDates = transcript.match(/\b(tomorrow|end of week|friday|monday|next week)\b/i) && !meetingDate;
   const wc = useMemo(() => wordCount(transcript), [transcript]);
+  const resolvedMeetingDate = useMemo(() => parseMeetingDate(meetingDate), [meetingDate]);
+  const meetingDatePreview = resolvedMeetingDate ? format(resolvedMeetingDate, "EEEE, d MMM yyyy") : null;
 
   useEffect(() => {
     if (tasks.length > 0 || decisions.length > 0 || questions.length > 0) setIsDirty(true);
@@ -275,17 +279,28 @@ export default function Index() {
               </div>
 
               <div>
-                <div className="floating-label-group">
+                <div className="floating-label-group relative">
                   <input
                     id="date-input"
                     value={meetingDate}
                     onChange={e => setMeetingDate(e.target.value)}
                     placeholder=" "
-                    className="h-[52px]"
+                    className="h-[52px] pr-16"
                   />
                   <label htmlFor="date-input">Meeting date</label>
+                  <button
+                    type="button"
+                    onClick={() => setMeetingDate(format(new Date(), "dd/MM/yyyy"))}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-medium px-2 py-1 rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                  >
+                    Today
+                  </button>
                 </div>
-                <p className="text-[11px] text-muted-foreground mt-1 ml-1">e.g. 12 Jun 2025 — resolves "tomorrow", "Friday"</p>
+                {meetingDatePreview ? (
+                  <p className="text-[11px] text-primary mt-1 ml-1">→ {meetingDatePreview}</p>
+                ) : (
+                  <p className="text-[11px] text-muted-foreground mt-1 ml-1">e.g. 12 Jun 2025 — resolves "tomorrow", "Friday"</p>
+                )}
               </div>
 
               {/* Transcript */}
@@ -472,6 +487,7 @@ export default function Index() {
                         tasks={tasks} onChange={setTasks}
                         filterLowConfidence={filterLow} filterUnassigned={filterUnassigned} filterNoDate={filterNoDate}
                         viewMode={viewMode}
+                        meetingDate={meetingDate}
                         onConvertToConfirm={convertTaskToConfirm}
                         onEvidenceClick={handleEvidenceClick}
                       />
