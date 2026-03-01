@@ -63,6 +63,8 @@ export default function Index() {
 
   const hasRelativeDates = transcript.match(/\b(tomorrow|end of week|friday|monday|next week)\b/i) && !meetingDate;
   const wc = useMemo(() => wordCount(transcript), [transcript]);
+  const resolvedMeetingDate = useMemo(() => parseMeetingDate(meetingDate), [meetingDate]);
+  const meetingDatePreview = resolvedMeetingDate ? format(resolvedMeetingDate, "EEEE, d MMM yyyy") : null;
 
   useEffect(() => {
     if (tasks.length > 0 || decisions.length > 0 || questions.length > 0) setIsDirty(true);
