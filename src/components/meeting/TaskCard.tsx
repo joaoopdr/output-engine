@@ -3,6 +3,7 @@ import type { MeetingTask, Confidence } from "@/types/meeting";
 import { ConfidenceBadge } from "./ConfidenceBadge";
 import { DatePill } from "./DatePill";
 import { EvidenceToggle } from "./EvidenceToggle";
+import { resolveDate } from "@/lib/dateUtils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
