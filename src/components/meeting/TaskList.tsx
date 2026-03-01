@@ -18,7 +18,7 @@ interface Props {
 
 export function TaskList({
   tasks, onChange, filterLowConfidence, filterUnassigned, filterNoDate,
-  viewMode, onConvertToConfirm, onEvidenceClick,
+  viewMode, meetingDate, onConvertToConfirm, onEvidenceClick,
 }: Props) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
