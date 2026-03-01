@@ -87,6 +87,7 @@ export function TaskList({
           isEditing={editingId === task.id}
           isExpanded={expandedId === task.id}
           viewMode={viewMode}
+          meetingDate={meetingDate}
           onToggleExpand={() => setExpandedId(expandedId === task.id ? null : task.id)}
           onStartEdit={() => { setEditingId(task.id); setExpandedId(task.id); }}
           onStopEdit={() => setEditingId(null)}
