@@ -11,6 +11,7 @@ interface Props {
   filterUnassigned?: boolean;
   filterNoDate?: boolean;
   viewMode: "clean" | "review";
+  meetingDate?: string;
   onConvertToConfirm?: (task: MeetingTask) => void;
   onEvidenceClick?: (snippet: string) => void;
 }
