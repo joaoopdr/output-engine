@@ -342,10 +342,12 @@ export default function Index() {
                   )}
                 </div>
                 {hasRelativeDates && (
-                  <p className="text-[11px] text-confidence-medium mt-1.5 flex items-center gap-1">
-                    <AlertTriangle className="h-3 w-3" />
-                    Relative dates detected — add meeting date to resolve them.
-                  </p>
+                  <div className="mt-2 flex items-start gap-2 rounded-lg border border-confidence-medium/30 bg-confidence-medium/10 px-3 py-2">
+                    <AlertTriangle className="h-4 w-4 text-confidence-medium shrink-0 mt-0.5" />
+                    <p className="text-xs text-confidence-medium leading-snug">
+                      This transcript contains relative dates (e.g. 'tomorrow', 'tonight'). Add a meeting date above so deadlines resolve correctly.
+                    </p>
+                  </div>
                 )}
               </div>
 
