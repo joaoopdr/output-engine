@@ -47,6 +47,7 @@ CONFIDENCE RULES:
 - low: missing owner, OR commitment is hedged ("maybe", "if X happens", "possibly", "I think"), OR unclear whether it was actually agreed
 - IMPORTANT: A relative date like "today" or "tonight" that is explicitly stated does NOT lower confidence. Relative dates are valid deadlines.
 - IMPORTANT: Self-commitment ("I'll do X today") = high confidence always, regardless of date format.
+- MERGED TASKS: When multiple commitments from the same owner are merged into one task, confidence is determined by the strongest individual sub-commitment. If all sub-tasks have explicit owners and explicit deadlines, the merged task is high — do not downgrade because the title is compound.
 
 EVIDENCE: For each item, include 1-2 short transcript snippets (exact phrases, max 20 words each) that justify the item. Evidence is mandatory. If no evidence, lower confidence or drop the item.
 
@@ -110,7 +111,7 @@ serve(async (req) => {
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: userPrompt },
         ],
-        temperature: 0.15,
+        temperature: 0,
       }),
     });
 
