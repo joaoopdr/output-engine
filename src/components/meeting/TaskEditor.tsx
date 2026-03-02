@@ -35,6 +35,8 @@ export function TaskEditor({ tasks, onChange, filterLowConfidence }: Props) {
       description_bullets: [],
       details: [],
       confidence: "medium",
+      priority: "when possible",
+      priority_reason: "No deadline found",
       evidence: [],
       notes: "",
     };
