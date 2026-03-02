@@ -1,6 +1,6 @@
-import { useState } from "react";
 import type { MeetingTask, Confidence } from "@/types/meeting";
 import { ConfidenceBadge } from "./ConfidenceBadge";
+import { PriorityBadge } from "./PriorityBadge";
 import { DatePill } from "./DatePill";
 import { EvidenceToggle } from "./EvidenceToggle";
 import { resolveDate } from "@/lib/dateUtils";
@@ -12,6 +12,9 @@ import {
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip, TooltipContent, TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface Props {
   task: MeetingTask;
@@ -29,10 +32,24 @@ interface Props {
   onEvidenceClick?: (snippet: string) => void;
 }
 
+function findEvidenceForOwner(evidence: string[], owner: string): string {
+  if (!owner || owner === "Unassigned") return evidence[0] || "";
+  const match = evidence.find(e => e.toLowerCase().includes(owner.toLowerCase()));
+  return match || evidence[0] || "";
+}
+
+function findEvidenceForDate(evidence: string[]): string {
+  const dateWords = /\b(today|tonight|tomorrow|friday|monday|tuesday|wednesday|thursday|saturday|sunday|by|morning|evening|end of)\b/i;
+  const match = evidence.find(e => dateWords.test(e));
+  return match || evidence[0] || "";
+}
+
 export function TaskCard({
   task, isSelected, isEditing, isExpanded, viewMode, meetingDate,
   onToggleExpand, onStartEdit, onStopEdit, onUpdate, onDelete, onAction, onEvidenceClick,
 }: Props) {
+  const dateEvidence = findEvidenceForDate(task.evidence || []);
+
   return (
     <div className={`rounded-lg border bg-[hsl(var(--card))] border-l-[3px] border-l-[hsl(var(--primary)/0.4)] transition-all ${isSelected ? "ring-1 ring-primary shadow-sm" : ""}`}>
       {/* Header row */}
@@ -45,22 +62,35 @@ export function TaskCard({
           : <ChevronRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
         }
         <span className="flex-1 text-sm font-medium truncate">{task.title}</span>
-        {task.owner && task.owner !== "Unassigned" && (
-          <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 shrink-0">
-            {task.owner}
-          </span>
-        )}
-        {task.owner === "Unassigned" && (
-          <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border shrink-0">
-            Unassigned
-          </span>
-        )}
+
+        {/* Owner pill with evidence tooltip */}
+        <div onClick={e => e.stopPropagation()}>
+          {task.owner && task.owner !== "Unassigned" ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 shrink-0 cursor-default">
+                  {task.owner}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="text-xs max-w-[260px] italic">
+                {findEvidenceForOwner(task.evidence || [], task.owner) || "No transcript excerpt"}
+              </TooltipContent>
+            </Tooltip>
+          ) : (
+            <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border shrink-0">
+              Unassigned
+            </span>
+          )}
+        </div>
+
+        {/* Date pill with evidence */}
         <div onClick={e => e.stopPropagation()}>
           <DatePill
             dateText={task.due_date_text}
             iso={task.due_date_iso}
             confidence={task.due_date_confidence}
             meetingDate={meetingDate}
+            evidence={dateEvidence}
             onUpdate={(text, iso) => {
               const resolved = resolveDate(text, meetingDate);
               onUpdate({
@@ -72,7 +102,10 @@ export function TaskCard({
             }}
           />
         </div>
-        <ConfidenceBadge level={task.confidence} />
+
+        {/* Priority tag (replaces confidence badge) */}
+        <PriorityBadge level={task.priority} reason={task.priority_reason} />
+
         <div className="flex items-center gap-0.5 shrink-0" onClick={(e) => e.stopPropagation()}>
           <Button variant="ghost" size="icon" className="h-6 w-6" onClick={isEditing ? onStopEdit : onStartEdit}>
             {isEditing ? <Check className="h-3 w-3" /> : <Pencil className="h-3 w-3" />}
@@ -179,6 +212,10 @@ export function TaskCard({
                 </ul>
               )}
               {task.notes && <p className="text-xs text-muted-foreground">📝 {task.notes}</p>}
+              {/* Extraction confidence — shown in expanded/review view */}
+              <p className="text-[10px] text-muted-foreground/60 mt-1">
+                Extraction confidence: <ConfidenceBadge level={task.confidence} />
+              </p>
               {(viewMode === "review" || isExpanded) && (
                 <EvidenceToggle evidence={task.evidence || []} onSnippetClick={onEvidenceClick} />
               )}

@@ -9,10 +9,11 @@ interface Props {
   iso?: string | null;
   confidence?: "exact" | "assumed" | "unresolved";
   meetingDate?: string;
+  evidence?: string;
   onUpdate: (text: string, iso: string | null) => void;
 }
 
-export function DatePill({ dateText, iso, confidence, meetingDate, onUpdate }: Props) {
+export function DatePill({ dateText, iso, confidence, meetingDate, evidence, onUpdate }: Props) {
   const [open, setOpen] = useState(false);
   const [freeText, setFreeText] = useState("");
   const [preview, setPreview] = useState<string>("");
@@ -113,6 +114,7 @@ export function DatePill({ dateText, iso, confidence, meetingDate, onUpdate }: P
         onFreeText={applyFreeText}
         onClear={handleClear}
         hasDate={!!dateText}
+        evidence={evidence}
       />
     </Popover>
   );
@@ -120,7 +122,7 @@ export function DatePill({ dateText, iso, confidence, meetingDate, onUpdate }: P
 
 function DatePopoverContent({
   freeText, setFreeText, preview, inputRef,
-  onQuick, onTime, onFreeText, onClear, hasDate,
+  onQuick, onTime, onFreeText, onClear, hasDate, evidence,
 }: {
   freeText: string;
   setFreeText: (v: string) => void;
@@ -131,9 +133,20 @@ function DatePopoverContent({
   onFreeText: () => void;
   onClear: () => void;
   hasDate: boolean;
+  evidence?: string;
 }) {
   return (
     <PopoverContent className="w-72 p-3 space-y-3" align="start" sideOffset={6}>
+      {/* Transcript evidence */}
+      {evidence && (
+        <div className="space-y-1">
+          <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">From transcript</p>
+          <p className="text-[11px] text-muted-foreground italic leading-snug border-l-2 border-primary/20 pl-2">
+            "{evidence}"
+          </p>
+        </div>
+      )}
+
       {/* Quick date buttons */}
       <div className="space-y-1.5">
         <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Quick select</p>
