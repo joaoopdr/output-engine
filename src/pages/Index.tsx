@@ -55,8 +55,8 @@ export default function Index() {
   const [editNotes, setEditNotes] = useState("");
   const [heavyEdits, setHeavyEdits] = useState(false);
   const [filterLow, setFilterLow] = useState(false);
-  const [filterUnassigned, setFilterUnassigned] = useState(false);
-  const [filterNoDate, setFilterNoDate] = useState(false);
+  const [filterOwner, setFilterOwner] = useState<string | null>(null);
+  const [filterDate, setFilterDate] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"clean" | "review">("clean");
   const [cmdOpen, setCmdOpen] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
@@ -165,7 +165,8 @@ export default function Index() {
     setTasks(prev => [...prev, {
       id: crypto.randomUUID(), title: d.decision, owner: "Unassigned",
       due_date_text: "", description_bullets: [], details: [],
-      confidence: d.confidence, evidence: d.evidence || [], notes: "",
+      confidence: d.confidence, priority: "when possible" as const, priority_reason: "No deadline found",
+      evidence: d.evidence || [], notes: "",
     }]);
   };
 
@@ -180,7 +181,8 @@ export default function Index() {
     setTasks(prev => [...prev, {
       id: crypto.randomUUID(), title: q.question, owner: q.directed_to || "Unassigned",
       due_date_text: "", description_bullets: [], details: [],
-      confidence: q.confidence, evidence: q.evidence || [], notes: "",
+      confidence: q.confidence, priority: "when possible" as const, priority_reason: "No deadline found",
+      evidence: q.evidence || [], notes: "",
     }]);
   };
 
@@ -193,8 +195,8 @@ export default function Index() {
 
   const handleCommand = (action: string) => {
     if (action === "filter-low") setFilterLow(v => !v);
-    if (action === "filter-unassigned") setFilterUnassigned(v => !v);
-    if (action === "filter-no-date") setFilterNoDate(v => !v);
+    if (action === "filter-unassigned") setFilterOwner(v => v === "Unassigned" ? null : "Unassigned");
+    if (action === "filter-no-date") setFilterDate(v => v === "__none__" ? null : "__none__");
     if (action === "toggle-mode") setViewMode(v => v === "clean" ? "review" : "clean");
     if (action === "export-markdown") handleExportMD();
     if (action === "regen-tasks") handleRegenerate("tasks");
@@ -472,22 +474,39 @@ export default function Index() {
                   <div className="flex-1 overflow-auto p-4 custom-scrollbar">
                     <TabsContent value="tasks" className="mt-0">
                       <div className="flex gap-1.5 mb-3">
-                        <button
-                          onClick={() => setFilterUnassigned(v => !v)}
-                          className={`flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-full border transition-colors ${filterUnassigned ? "bg-primary/10 text-primary border-primary/25" : "text-muted-foreground border-border/50 hover:border-primary/25"}`}
-                        >
-                          <User className="h-3 w-3" /> Unassigned
-                        </button>
-                        <button
-                          onClick={() => setFilterNoDate(v => !v)}
-                          className={`flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-full border transition-colors ${filterNoDate ? "bg-primary/10 text-primary border-primary/25" : "text-muted-foreground border-border/50 hover:border-primary/25"}`}
-                        >
-                          <Calendar className="h-3 w-3" /> No due date
-                        </button>
+                        {/* Owner filter dropdown */}
+                        <div className="relative">
+                          <select
+                            value={filterOwner || ""}
+                            onChange={e => setFilterOwner(e.target.value || null)}
+                            className={`appearance-none text-[11px] pl-2.5 pr-6 py-1 rounded-full border transition-colors cursor-pointer bg-transparent ${filterOwner ? "bg-primary/10 text-primary border-primary/25" : "text-muted-foreground border-border/50 hover:border-primary/25"}`}
+                          >
+                            <option value="">All owners</option>
+                            {[...new Set(tasks.map(t => t.owner))].sort().map(owner => (
+                              <option key={owner} value={owner}>{owner}</option>
+                            ))}
+                          </select>
+                          {filterOwner && <span className="absolute top-0 right-1 w-1.5 h-1.5 rounded-full bg-primary" />}
+                        </div>
+                        {/* Date filter dropdown */}
+                        <div className="relative">
+                          <select
+                            value={filterDate || ""}
+                            onChange={e => setFilterDate(e.target.value || null)}
+                            className={`appearance-none text-[11px] pl-2.5 pr-6 py-1 rounded-full border transition-colors cursor-pointer bg-transparent ${filterDate ? "bg-primary/10 text-primary border-primary/25" : "text-muted-foreground border-border/50 hover:border-primary/25"}`}
+                          >
+                            <option value="">All dates</option>
+                            <option value="__none__">No due date</option>
+                            {[...new Set(tasks.filter(t => t.due_date_display).map(t => t.due_date_display!))].sort().map(d => (
+                              <option key={d} value={d}>{d}</option>
+                            ))}
+                          </select>
+                          {filterDate && <span className="absolute top-0 right-1 w-1.5 h-1.5 rounded-full bg-primary" />}
+                        </div>
                       </div>
                       <TaskList
                         tasks={tasks} onChange={setTasks}
-                        filterLowConfidence={filterLow} filterUnassigned={filterUnassigned} filterNoDate={filterNoDate}
+                        filterLowConfidence={filterLow} filterOwner={filterOwner} filterDate={filterDate}
                         viewMode={viewMode}
                         meetingDate={meetingDate}
                         onConvertToConfirm={convertTaskToConfirm}

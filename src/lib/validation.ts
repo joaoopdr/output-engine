@@ -1,5 +1,6 @@
-import type { ParsedOutput, Confidence, MeetingTask, MeetingDecision, MeetingQuestion } from "@/types/meeting";
+import type { ParsedOutput, Confidence, Priority, MeetingTask, MeetingDecision, MeetingQuestion } from "@/types/meeting";
 import { resolveDate } from "@/lib/dateUtils";
+import { differenceInDays, parseISO } from "date-fns";
 
 const VALID_CONFIDENCE: Confidence[] = ["low", "medium", "high"];
 const MAX_TASKS = 15;
@@ -87,6 +88,45 @@ export function validateModelOutput(raw: string, meetingDateISO?: string): Valid
       ? "medium" as Confidence
       : t.confidence,
   }));
+
+  // Compute priority based on deadline and urgency signals
+  const URGENCY_WORDS = /\b(today|tonight|asap|by eod|blocking|blocked|urgent|immediately)\b/i;
+  const refDate = meetingDateISO ? parseISO(meetingDateISO) : new Date();
+
+  tasks = tasks.map(t => {
+    const evidenceText = (t.evidence || []).join(" ") + " " + t.due_date_text;
+    const hasUrgencyLanguage = URGENCY_WORDS.test(evidenceText);
+
+    let priority: Priority = "when possible";
+    let priority_reason = "No deadline found";
+
+    if (t.due_date_iso) {
+      try {
+        const dueDate = parseISO(t.due_date_iso);
+        const daysUntil = differenceInDays(dueDate, refDate);
+        if (daysUntil <= 1 || hasUrgencyLanguage) {
+          priority = "urgent";
+          priority_reason = daysUntil <= 1 ? (daysUntil <= 0 ? "Due today" : "Due tomorrow") : "Urgency language in transcript";
+        } else if (daysUntil <= 7) {
+          priority = "this week";
+          priority_reason = "Deadline within 7 days";
+        } else {
+          priority = "this week";
+          priority_reason = `Due in ${daysUntil} days`;
+        }
+      } catch {
+        if (hasUrgencyLanguage) {
+          priority = "urgent";
+          priority_reason = "Urgency language in transcript";
+        }
+      }
+    } else if (hasUrgencyLanguage) {
+      priority = "urgent";
+      priority_reason = "Urgency language in transcript";
+    }
+
+    return { ...t, priority, priority_reason };
+  });
 
   const decisions: MeetingDecision[] = parsed.decisions.slice(0, MAX_DECISIONS).map((d: any) => ({
     id: generateId(),

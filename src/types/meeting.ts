@@ -1,4 +1,5 @@
 export type Confidence = "low" | "medium" | "high";
+export type Priority = "urgent" | "this week" | "when possible";
 
 export interface MeetingTask {
   id: string;
@@ -11,6 +12,8 @@ export interface MeetingTask {
   description_bullets: string[];
   details: string[];
   confidence: Confidence;
+  priority: Priority;
+  priority_reason: string;
   evidence: string[];
   notes: string;
 }

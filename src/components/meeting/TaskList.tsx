@@ -8,8 +8,8 @@ interface Props {
   tasks: MeetingTask[];
   onChange: (tasks: MeetingTask[]) => void;
   filterLowConfidence?: boolean;
-  filterUnassigned?: boolean;
-  filterNoDate?: boolean;
+  filterOwner?: string | null;
+  filterDate?: string | null;
   viewMode: "clean" | "review";
   meetingDate?: string;
   onConvertToConfirm?: (task: MeetingTask) => void;
@@ -17,7 +17,7 @@ interface Props {
 }
 
 export function TaskList({
-  tasks, onChange, filterLowConfidence, filterUnassigned, filterNoDate,
+  tasks, onChange, filterLowConfidence, filterOwner, filterDate,
   viewMode, meetingDate, onConvertToConfirm, onEvidenceClick,
 }: Props) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -26,8 +26,9 @@ export function TaskList({
 
   let displayTasks = tasks;
   if (filterLowConfidence) displayTasks = displayTasks.filter(t => t.confidence === "low");
-  if (filterUnassigned) displayTasks = displayTasks.filter(t => t.owner === "Unassigned");
-  if (filterNoDate) displayTasks = displayTasks.filter(t => !t.due_date_text);
+  if (filterOwner) displayTasks = displayTasks.filter(t => t.owner === filterOwner);
+  if (filterDate === "__none__") displayTasks = displayTasks.filter(t => !t.due_date_text);
+  else if (filterDate) displayTasks = displayTasks.filter(t => t.due_date_display === filterDate || t.due_date_text === filterDate);
 
   const update = (id: string, patch: Partial<MeetingTask>) => {
     onChange(tasks.map(t => t.id === id ? { ...t, ...patch } : t));
@@ -39,7 +40,8 @@ export function TaskList({
     const newTask: MeetingTask = {
       id: crypto.randomUUID(), title: "New task", owner: "Unassigned",
       due_date_text: "", description_bullets: [], details: [],
-      confidence: "medium", evidence: [], notes: "",
+      confidence: "medium", priority: "when possible", priority_reason: "No deadline found",
+      evidence: [], notes: "",
     };
     onChange([...tasks, newTask]);
     setEditingId(newTask.id);
