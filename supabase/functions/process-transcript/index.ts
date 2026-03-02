@@ -10,39 +10,43 @@ const SYSTEM_PROMPT = `You extract execution items from Weekly Planning transcri
 Do not summarize. Output only the JSON schema below. No markdown, no code blocks.
 
 TASK RULES (commitments only):
-- A Task exists ONLY if someone volunteers ("I'll do it"), the facilitator assigns ("Sam, can you…"), or the group explicitly commits ("We need to do X this week").
-- If phrased as "we should / maybe / could," do NOT create a task. Instead add to things_to_confirm: "Is someone owning X this week?"
-- Use verb-first titles: "Send…", "Draft…", "Confirm…", "Investigate…"
+- A Task exists ONLY if: (a) someone volunteers in first person ("I'll do it", "I can deliver that"), (b) the facilitator assigns AND the person accepts ("Sam, can you?" → "Will do"), or (c) the group commits explicitly ("We need to ship X this week").
+- "We should", "maybe", "could", "I think we need to" → NOT a task. Add to things_to_confirm instead: "Is someone owning [X]?"
+- Hedged commitments ("I can start it Saturday IF Friday demo lands") → NOT a task. Add to things_to_confirm: "Is [person] doing [X]? Conditional on [condition]."
+- Deferred items ("we'll schedule that tomorrow") → Add to things_to_confirm: "Who is scheduling [X] and when?"
+- Use verb-first titles: "Send…", "Draft…", "Implement…", "Deliver…"
 - One task = one owner. If unclear, owner = "Unassigned", confidence = "low".
-- Due dates only if explicitly stated. Otherwise empty string.
+- Due dates: preserve exact phrase from transcript ("tonight", "tomorrow morning", "by Friday"). Do not invent or normalize.
+- Hard cap: 15 tasks. Prefer merging micro-tasks into one parent task with detail bullets.
+- Deduplicate: same owner + similar title = merge.
+- If a later decision narrows scope, drop tasks that fall outside that scope.
 - When extracting due dates, preserve the exact phrase used in the transcript (e.g., 'tonight', 'tomorrow morning', 'by Friday'). Do not normalize or invent dates. The frontend will resolve these to actual datetimes.
-- If later in transcript there's a decision to focus only on X, drop tasks outside X.
-- Merge micro-tasks into one parent task when appropriate; keep detail bullets.
-- Hard cap: 15 tasks unless transcript is very long. Prefer merging to dropping.
-- Deduplicate similar tasks.
 
 DECISION RULES:
-- Only clear commitments made during the meeting.
+- Capture: scope constraints, product behavior rules, process agreements, naming/renaming decisions, timeline commitments the whole group agrees on.
+- Examples of what counts as a decision: "Phase 1 is weekly planning only", "cap tasks at 15", "rename tab to Things to confirm", "if meeting date missing keep relative text", "owner Unassigned forces confidence to low"
 - One sentence max. No explanations, no "because".
-- Only real constraints/scope choices.
+- Do NOT only capture high-level strategy — capture operational rules agreed in the meeting too.
 
 THINGS TO CONFIRM RULES (execution blockers only):
 - Include ONLY items that block execution:
   * Unclear owner on an important commitment
+  * Hedged commitment that wasn't resolved ("I can do it if X" → confirm whether X happened)
+  * Deferred scheduling ("we'll plan that tomorrow" → who does that?)
   * Unclear deadline when urgency is implied
   * Unresolved decision that determines next steps
   * Missing input needed to proceed (access, format, policy)
-- If a commitment was made but no deadline was discussed and the task seems time-sensitive, add a thing_to_confirm: 'What is the deadline for [task]?'
-- Do NOT include:
-  * Naming/codename discussions
-  * Jokes
-  * "Future ideas" (unless required to decide now)
-  * General curiosities
+- If a commitment was made but no deadline was discussed and the task seems time-sensitive,
+  add a thing_to_confirm: 'What is the deadline for [task]?'
+- Do NOT include: naming jokes, pure future ideas, general curiosities, items the group explicitly said are not blocking
+- Format as a direct question: "Is [person] doing [X]?", "What is the deadline for [X]?", "Who owns scheduling [X]?"
 
 CONFIDENCE RULES:
-- high: explicit owner + explicit commitment language
-- medium: clear intent but missing one detail
-- low: missing owner or unclear commitment
+- high: named owner (from attendees list or clearly named) + explicit first-person commitment ("I'll do X", "I can do X") OR explicit facilitator assignment that was verbally accepted ("Sam, can you do X?" → "Will do" / "Sure")
+- medium: clear intent but genuinely missing one detail — owner known but deadline truly absent, OR deadline known but owner slightly ambiguous
+- low: missing owner, OR commitment is hedged ("maybe", "if X happens", "possibly", "I think"), OR unclear whether it was actually agreed
+- IMPORTANT: A relative date like "today" or "tonight" that is explicitly stated does NOT lower confidence. Relative dates are valid deadlines.
+- IMPORTANT: Self-commitment ("I'll do X today") = high confidence always, regardless of date format.
 
 EVIDENCE: For each item, include 1-2 short transcript snippets (exact phrases, max 20 words each) that justify the item. Evidence is mandatory. If no evidence, lower confidence or drop the item.
 

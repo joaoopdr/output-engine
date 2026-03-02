@@ -72,6 +72,22 @@ export function validateModelOutput(raw: string, meetingDateISO?: string): Valid
       };
     });
 
+  // Post-processing: if owner is Unassigned, force confidence to low
+  tasks = tasks.map(t => ({
+    ...t,
+    confidence: t.owner === "Unassigned" ? "low" as Confidence : t.confidence,
+  }));
+
+  // Safety floor: if a task has a named owner AND a due_date_text, it should be at least "medium".
+  // This does NOT override genuinely low-confidence items (unassigned owner, hedged language).
+  // It only catches cases where the model under-scored a clear commitment.
+  tasks = tasks.map(t => ({
+    ...t,
+    confidence: (t.owner !== "Unassigned" && t.due_date_text && t.confidence === "low")
+      ? "medium" as Confidence
+      : t.confidence,
+  }));
+
   const decisions: MeetingDecision[] = parsed.decisions.slice(0, MAX_DECISIONS).map((d: any) => ({
     id: generateId(),
     decision: String(d.decision || ""),
