@@ -165,7 +165,8 @@ export default function Index() {
     setTasks(prev => [...prev, {
       id: crypto.randomUUID(), title: d.decision, owner: "Unassigned",
       due_date_text: "", description_bullets: [], details: [],
-      confidence: d.confidence, evidence: d.evidence || [], notes: "",
+      confidence: d.confidence, priority: "when possible" as const, priority_reason: "No deadline found",
+      evidence: d.evidence || [], notes: "",
     }]);
   };
 
@@ -180,7 +181,8 @@ export default function Index() {
     setTasks(prev => [...prev, {
       id: crypto.randomUUID(), title: q.question, owner: q.directed_to || "Unassigned",
       due_date_text: "", description_bullets: [], details: [],
-      confidence: q.confidence, evidence: q.evidence || [], notes: "",
+      confidence: q.confidence, priority: "when possible" as const, priority_reason: "No deadline found",
+      evidence: q.evidence || [], notes: "",
     }]);
   };
 
