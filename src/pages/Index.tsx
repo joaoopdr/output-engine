@@ -61,6 +61,7 @@ export default function Index() {
   const [viewMode, setViewMode] = useState<"clean" | "review">("clean");
   const [cmdOpen, setCmdOpen] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
+  const [timePrefs, setTimePrefs] = useState<TimePrefs>(loadTimePrefs);
 
   const hasRelativeDates = transcript.match(/\b(tomorrow|end of week|friday|monday|next week)\b/i) && !meetingDate;
   const wc = useMemo(() => wordCount(transcript), [transcript]);
