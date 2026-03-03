@@ -19,6 +19,7 @@ import {
   Save, AlertTriangle, Upload, Eraser, User, Calendar,
   LayoutGrid, HelpCircle, CheckCircle2, Shield, Eye,
 } from "lucide-react";
+import { TimePreferences, loadTimePrefs, type TimePrefs } from "@/components/meeting/TimePreferences";
 import { Switch } from "@/components/ui/switch";
 import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
@@ -60,6 +61,7 @@ export default function Index() {
   const [viewMode, setViewMode] = useState<"clean" | "review">("clean");
   const [cmdOpen, setCmdOpen] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
+  const [timePrefs, setTimePrefs] = useState<TimePrefs>(loadTimePrefs);
 
   const hasRelativeDates = transcript.match(/\b(tomorrow|end of week|friday|monday|next week)\b/i) && !meetingDate;
   const wc = useMemo(() => wordCount(transcript), [transcript]);
@@ -281,22 +283,25 @@ export default function Index() {
               </div>
 
               <div>
-                <div className="floating-label-group relative">
-                  <input
-                    id="date-input"
-                    value={meetingDate}
-                    onChange={e => setMeetingDate(e.target.value)}
-                    placeholder=" "
-                    className="h-[52px] pr-16"
-                  />
-                  <label htmlFor="date-input">Meeting date</label>
-                  <button
-                    type="button"
-                    onClick={() => setMeetingDate(format(new Date(), "dd/MM/yyyy"))}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-medium px-2 py-1 rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
-                  >
-                    Today
-                  </button>
+                <div className="flex items-center gap-1.5">
+                  <div className="floating-label-group relative flex-1">
+                    <input
+                      id="date-input"
+                      value={meetingDate}
+                      onChange={e => setMeetingDate(e.target.value)}
+                      placeholder=" "
+                      className="h-[52px] pr-16"
+                    />
+                    <label htmlFor="date-input">Meeting date</label>
+                    <button
+                      type="button"
+                      onClick={() => setMeetingDate(format(new Date(), "dd/MM/yyyy"))}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-medium px-2 py-1 rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                    >
+                      Today
+                    </button>
+                  </div>
+                  <TimePreferences onChange={setTimePrefs} />
                 </div>
                 {meetingDatePreview ? (
                   <p className="text-[11px] text-primary mt-1 ml-1">→ {meetingDatePreview}</p>
@@ -475,25 +480,26 @@ export default function Index() {
                     <TabsContent value="tasks" className="mt-0">
                       <div className="flex gap-1.5 mb-3">
                         {/* Owner filter dropdown */}
-                        <div className="relative">
+                        <div className="relative inline-flex items-center">
+                          {filterOwner && <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-primary z-10" />}
                           <select
                             value={filterOwner || ""}
                             onChange={e => setFilterOwner(e.target.value || null)}
-                            className={`appearance-none text-[11px] pl-2.5 pr-6 py-1 rounded-full border transition-colors cursor-pointer bg-transparent ${filterOwner ? "bg-primary/10 text-primary border-primary/25" : "text-muted-foreground border-border/50 hover:border-primary/25"}`}
+                            className={`appearance-none w-auto min-w-fit text-[12px] px-3 py-1 rounded-full border transition-colors cursor-pointer bg-transparent ${filterOwner ? "bg-primary/10 text-primary border-primary/25" : "text-muted-foreground border-border/50 hover:border-primary/25"}`}
                           >
                             <option value="">All owners</option>
                             {[...new Set(tasks.map(t => t.owner))].sort().map(owner => (
                               <option key={owner} value={owner}>{owner}</option>
                             ))}
                           </select>
-                          {filterOwner && <span className="absolute top-0 right-1 w-1.5 h-1.5 rounded-full bg-primary" />}
                         </div>
                         {/* Date filter dropdown */}
-                        <div className="relative">
+                        <div className="relative inline-flex items-center">
+                          {filterDate && <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-primary z-10" />}
                           <select
                             value={filterDate || ""}
                             onChange={e => setFilterDate(e.target.value || null)}
-                            className={`appearance-none text-[11px] pl-2.5 pr-6 py-1 rounded-full border transition-colors cursor-pointer bg-transparent ${filterDate ? "bg-primary/10 text-primary border-primary/25" : "text-muted-foreground border-border/50 hover:border-primary/25"}`}
+                            className={`appearance-none w-auto min-w-fit text-[12px] px-3 py-1 rounded-full border transition-colors cursor-pointer bg-transparent ${filterDate ? "bg-primary/10 text-primary border-primary/25" : "text-muted-foreground border-border/50 hover:border-primary/25"}`}
                           >
                             <option value="">All dates</option>
                             <option value="__none__">No due date</option>
@@ -501,7 +507,6 @@ export default function Index() {
                               <option key={d} value={d}>{d}</option>
                             ))}
                           </select>
-                          {filterDate && <span className="absolute top-0 right-1 w-1.5 h-1.5 rounded-full bg-primary" />}
                         </div>
                       </div>
                       <TaskList
@@ -509,6 +514,7 @@ export default function Index() {
                         filterLowConfidence={filterLow} filterOwner={filterOwner} filterDate={filterDate}
                         viewMode={viewMode}
                         meetingDate={meetingDate}
+                        attendees={attendees}
                         onConvertToConfirm={convertTaskToConfirm}
                         onEvidenceClick={handleEvidenceClick}
                       />
