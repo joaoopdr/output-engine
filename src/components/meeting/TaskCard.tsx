@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { MeetingTask, Confidence } from "@/types/meeting";
 import { ConfidenceBadge } from "./ConfidenceBadge";
 import { PriorityBadge } from "./PriorityBadge";
@@ -23,6 +24,7 @@ interface Props {
   isExpanded: boolean;
   viewMode: "clean" | "review";
   meetingDate?: string;
+  attendees?: string;
   onToggleExpand: () => void;
   onStartEdit: () => void;
   onStopEdit: () => void;
@@ -44,11 +46,18 @@ function findEvidenceForDate(evidence: string[]): string {
   return match || evidence[0] || "";
 }
 
+function parseAttendees(attendeesStr?: string): string[] {
+  if (!attendeesStr) return [];
+  return attendeesStr.split(",").map(s => s.trim()).filter(Boolean);
+}
+
 export function TaskCard({
-  task, isSelected, isEditing, isExpanded, viewMode, meetingDate,
+  task, isSelected, isEditing, isExpanded, viewMode, meetingDate, attendees,
   onToggleExpand, onStartEdit, onStopEdit, onUpdate, onDelete, onAction, onEvidenceClick,
 }: Props) {
   const dateEvidence = findEvidenceForDate(task.evidence || []);
+  const [ownerDropdownOpen, setOwnerDropdownOpen] = useState(false);
+  const attendeeList = parseAttendees(attendees);
 
   return (
     <div className={`rounded-lg border bg-[hsl(var(--card))] border-l-[3px] border-l-[hsl(var(--primary)/0.4)] transition-all ${isSelected ? "ring-1 ring-primary shadow-sm" : ""}`}>
@@ -61,30 +70,48 @@ export function TaskCard({
           ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
           : <ChevronRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
         }
-        <span className="flex-1 text-sm font-medium truncate">{task.title}</span>
+        <span className="flex-1 min-w-0 text-sm font-medium truncate">{task.title}</span>
 
-        {/* Owner pill with evidence tooltip */}
-        <div onClick={e => e.stopPropagation()}>
-          {task.owner && task.owner !== "Unassigned" ? (
+        {/* Right-side metadata — fixed alignment */}
+        <div className="flex items-center gap-1.5 shrink-0 ml-auto" onClick={e => e.stopPropagation()}>
+          {/* Owner pill with dropdown */}
+          <DropdownMenu open={ownerDropdownOpen} onOpenChange={setOwnerDropdownOpen}>
             <Tooltip>
               <TooltipTrigger asChild>
-                <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 shrink-0 cursor-default">
-                  {task.owner}
-                </span>
+                <DropdownMenuTrigger asChild>
+                  {task.owner && task.owner !== "Unassigned" ? (
+                    <button className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 shrink-0 cursor-pointer hover:bg-primary/20 transition-colors">
+                      {task.owner}
+                    </button>
+                  ) : (
+                    <button className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border shrink-0 cursor-pointer hover:bg-muted/80 transition-colors">
+                      Unassigned
+                    </button>
+                  )}
+                </DropdownMenuTrigger>
               </TooltipTrigger>
-              <TooltipContent side="top" className="text-xs max-w-[260px] italic">
-                {findEvidenceForOwner(task.evidence || [], task.owner) || "No transcript excerpt"}
-              </TooltipContent>
+              {!ownerDropdownOpen && (
+                <TooltipContent side="top" className="text-xs max-w-[260px] italic">
+                  {findEvidenceForOwner(task.evidence || [], task.owner) || "No transcript excerpt"}
+                </TooltipContent>
+              )}
             </Tooltip>
-          ) : (
-            <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border shrink-0">
-              Unassigned
-            </span>
-          )}
-        </div>
+            <DropdownMenuContent align="start" className="w-44">
+              {attendeeList.map(name => (
+                <DropdownMenuItem key={name} onClick={() => onUpdate({ owner: name })}>
+                  <span className="flex-1">{name}</span>
+                  {task.owner === name && <Check className="h-3 w-3 text-primary" />}
+                </DropdownMenuItem>
+              ))}
+              {attendeeList.length > 0 && <div className="h-px bg-border my-1" />}
+              <DropdownMenuItem onClick={() => onUpdate({ owner: "Unassigned" })}>
+                <span className="flex-1 text-muted-foreground">Unassigned</span>
+                {task.owner === "Unassigned" && <Check className="h-3 w-3 text-primary" />}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
-        {/* Date pill with evidence */}
-        <div onClick={e => e.stopPropagation()}>
+          {/* Date pill with evidence */}
           <DatePill
             dateText={task.due_date_text}
             iso={task.due_date_iso}
@@ -101,29 +128,30 @@ export function TaskCard({
               });
             }}
           />
-        </div>
 
-        {/* Priority tag (replaces confidence badge) */}
-        <PriorityBadge level={task.priority} reason={task.priority_reason} />
+          {/* Priority tag */}
+          <PriorityBadge level={task.priority} reason={task.priority_reason} />
 
-        <div className="flex items-center gap-0.5 shrink-0" onClick={(e) => e.stopPropagation()}>
-          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={isEditing ? onStopEdit : onStartEdit}>
-            {isEditing ? <Check className="h-3 w-3" /> : <Pencil className="h-3 w-3" />}
-          </Button>
-          <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={onDelete}>
-            <Trash2 className="h-3 w-3" />
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-6 w-6">
-                <MoreHorizontal className="h-3 w-3" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem onClick={() => onAction("split")}>Split into two tasks</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onAction("to-confirm")}>Move to Things to confirm</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {/* Action buttons */}
+          <div className="flex items-center gap-0.5 shrink-0">
+            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={isEditing ? onStopEdit : onStartEdit}>
+              {isEditing ? <Check className="h-3 w-3" /> : <Pencil className="h-3 w-3" />}
+            </Button>
+            <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={onDelete}>
+              <Trash2 className="h-3 w-3" />
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-6 w-6">
+                  <MoreHorizontal className="h-3 w-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={() => onAction("split")}>Split into two tasks</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onAction("to-confirm")}>Move to Things to confirm</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </div>
 
@@ -212,8 +240,8 @@ export function TaskCard({
                 </ul>
               )}
               {task.notes && <p className="text-xs text-muted-foreground">📝 {task.notes}</p>}
-              {/* Extraction confidence — shown in expanded/review view */}
-              <p className="text-[10px] text-muted-foreground/60 mt-1">
+              {/* Extraction confidence — footnote style */}
+              <p className="text-[10px] font-mono text-muted-foreground/60 mt-1">
                 Extraction confidence: <ConfidenceBadge level={task.confidence} />
               </p>
               {(viewMode === "review" || isExpanded) && (

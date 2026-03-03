@@ -12,13 +12,47 @@ interface Props {
   filterDate?: string | null;
   viewMode: "clean" | "review";
   meetingDate?: string;
+  attendees?: string;
   onConvertToConfirm?: (task: MeetingTask) => void;
   onEvidenceClick?: (snippet: string) => void;
 }
 
+function smartSplit(task: MeetingTask): [MeetingTask, MeetingTask] {
+  const evidence = task.evidence || [];
+  let title1 = task.title;
+  let title2 = task.title;
+  let ev1 = [...evidence];
+  let ev2 = [...evidence];
+
+  // Try splitting on " and "
+  const andIdx = task.title.toLowerCase().indexOf(" and ");
+  if (andIdx > 0) {
+    title1 = task.title.slice(0, andIdx).trim();
+    title2 = task.title.slice(andIdx + 5).trim();
+    // Capitalize second part
+    if (title2.length > 0) title2 = title2[0].toUpperCase() + title2.slice(1);
+  } else if (evidence.length >= 2) {
+    title1 = `Part 1 of: ${task.title}`;
+    title2 = `Part 2 of: ${task.title}`;
+  } else {
+    title1 = task.title + " (1)";
+    title2 = task.title + " (2)";
+  }
+
+  // Split evidence
+  if (evidence.length >= 2) {
+    ev1 = [evidence[0]];
+    ev2 = [evidence[1]];
+  }
+
+  const t1: MeetingTask = { ...task, id: crypto.randomUUID(), title: title1, evidence: ev1 };
+  const t2: MeetingTask = { ...task, id: crypto.randomUUID(), title: title2, evidence: ev2 };
+  return [t1, t2];
+}
+
 export function TaskList({
   tasks, onChange, filterLowConfidence, filterOwner, filterDate,
-  viewMode, meetingDate, onConvertToConfirm, onEvidenceClick,
+  viewMode, meetingDate, attendees, onConvertToConfirm, onEvidenceClick,
 }: Props) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -50,10 +84,10 @@ export function TaskList({
 
   const handleAction = (task: MeetingTask, action: string) => {
     if (action === "split") {
-      const t2: MeetingTask = { ...task, id: crypto.randomUUID(), title: task.title + " (part 2)" };
+      const [t1, t2] = smartSplit(task);
       const idx = tasks.findIndex(t => t.id === task.id);
       const newTasks = [...tasks];
-      newTasks.splice(idx + 1, 0, t2);
+      newTasks.splice(idx, 1, t1, t2);
       onChange(newTasks);
     } else if (action === "to-confirm" && onConvertToConfirm) {
       onConvertToConfirm(task);
@@ -90,6 +124,7 @@ export function TaskList({
           isExpanded={expandedId === task.id}
           viewMode={viewMode}
           meetingDate={meetingDate}
+          attendees={attendees}
           onToggleExpand={() => setExpandedId(expandedId === task.id ? null : task.id)}
           onStartEdit={() => { setEditingId(task.id); setExpandedId(task.id); }}
           onStopEdit={() => setEditingId(null)}
