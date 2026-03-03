@@ -63,7 +63,8 @@ export default function Index() {
   const [isDirty, setIsDirty] = useState(false);
   const [timePrefs, setTimePrefs] = useState<TimePrefs>(loadTimePrefs);
 
-  const hasRelativeDates = transcript.match(/\b(tomorrow|end of week|friday|monday|next week)\b/i) && !meetingDate;
+  const meetingDateInvalid = !meetingDate || !parseMeetingDate(meetingDate);
+  const hasRelativeDates = transcript.match(/\b(tomorrow|tonight|today|end of week|friday|monday|next week|morning|evening)\b/i) && meetingDateInvalid;
   const wc = useMemo(() => wordCount(transcript), [transcript]);
   const resolvedMeetingDate = useMemo(() => parseMeetingDate(meetingDate), [meetingDate]);
   const meetingDatePreview = resolvedMeetingDate ? format(resolvedMeetingDate, "EEEE, d MMM yyyy") : null;
@@ -352,7 +353,7 @@ export default function Index() {
                   <div className="mt-2 flex items-start gap-2 rounded-lg border border-confidence-medium/30 bg-confidence-medium/10 px-3 py-2">
                     <AlertTriangle className="h-4 w-4 text-confidence-medium shrink-0 mt-0.5" />
                     <p className="text-xs text-confidence-medium leading-snug">
-                      This transcript contains relative dates (e.g. 'tomorrow', 'tonight'). Add a meeting date above so deadlines resolve correctly.
+                      Meeting date is missing or unrecognised. Relative dates in this transcript ('tonight', 'tomorrow', 'Friday') cannot be resolved to real dates. Add a date above before generating.
                     </p>
                   </div>
                 )}
@@ -478,14 +479,14 @@ export default function Index() {
 
                   <div className="flex-1 overflow-auto p-4 custom-scrollbar">
                     <TabsContent value="tasks" className="mt-0">
-                      <div className="flex gap-1.5 mb-3">
+                      <div className="flex items-center gap-2 mb-3 w-fit">
                         {/* Owner filter dropdown */}
-                        <div className="relative inline-flex items-center">
+                        <div className="relative inline-flex items-center w-fit">
                           {filterOwner && <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-primary z-10" />}
                           <select
                             value={filterOwner || ""}
                             onChange={e => setFilterOwner(e.target.value || null)}
-                            className={`appearance-none w-auto min-w-fit text-[12px] px-3 py-1 rounded-full border transition-colors cursor-pointer bg-transparent ${filterOwner ? "bg-primary/10 text-primary border-primary/25" : "text-muted-foreground border-border/50 hover:border-primary/25"}`}
+                            className={`appearance-none w-fit text-xs px-3 py-1 rounded-full border transition-colors cursor-pointer bg-transparent ${filterOwner ? "bg-primary/10 text-primary border-primary/25" : "text-muted-foreground border-border/50 hover:border-primary/25"}`}
                           >
                             <option value="">All owners</option>
                             {[...new Set(tasks.map(t => t.owner))].sort().map(owner => (
@@ -494,12 +495,12 @@ export default function Index() {
                           </select>
                         </div>
                         {/* Date filter dropdown */}
-                        <div className="relative inline-flex items-center">
+                        <div className="relative inline-flex items-center w-fit">
                           {filterDate && <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-primary z-10" />}
                           <select
                             value={filterDate || ""}
                             onChange={e => setFilterDate(e.target.value || null)}
-                            className={`appearance-none w-auto min-w-fit text-[12px] px-3 py-1 rounded-full border transition-colors cursor-pointer bg-transparent ${filterDate ? "bg-primary/10 text-primary border-primary/25" : "text-muted-foreground border-border/50 hover:border-primary/25"}`}
+                            className={`appearance-none w-fit text-xs px-3 py-1 rounded-full border transition-colors cursor-pointer bg-transparent ${filterDate ? "bg-primary/10 text-primary border-primary/25" : "text-muted-foreground border-border/50 hover:border-primary/25"}`}
                           >
                             <option value="">All dates</option>
                             <option value="__none__">No due date</option>
