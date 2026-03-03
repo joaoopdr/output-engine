@@ -514,6 +514,7 @@ export default function Index() {
                         filterLowConfidence={filterLow} filterOwner={filterOwner} filterDate={filterDate}
                         viewMode={viewMode}
                         meetingDate={meetingDate}
+                        attendees={attendees}
                         onConvertToConfirm={convertTaskToConfirm}
                         onEvidenceClick={handleEvidenceClick}
                       />
