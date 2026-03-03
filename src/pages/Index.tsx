@@ -480,25 +480,26 @@ export default function Index() {
                     <TabsContent value="tasks" className="mt-0">
                       <div className="flex gap-1.5 mb-3">
                         {/* Owner filter dropdown */}
-                        <div className="relative">
+                        <div className="relative inline-flex items-center">
+                          {filterOwner && <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-primary z-10" />}
                           <select
                             value={filterOwner || ""}
                             onChange={e => setFilterOwner(e.target.value || null)}
-                            className={`appearance-none text-[11px] pl-2.5 pr-6 py-1 rounded-full border transition-colors cursor-pointer bg-transparent ${filterOwner ? "bg-primary/10 text-primary border-primary/25" : "text-muted-foreground border-border/50 hover:border-primary/25"}`}
+                            className={`appearance-none w-auto min-w-fit text-[12px] px-3 py-1 rounded-full border transition-colors cursor-pointer bg-transparent ${filterOwner ? "bg-primary/10 text-primary border-primary/25" : "text-muted-foreground border-border/50 hover:border-primary/25"}`}
                           >
                             <option value="">All owners</option>
                             {[...new Set(tasks.map(t => t.owner))].sort().map(owner => (
                               <option key={owner} value={owner}>{owner}</option>
                             ))}
                           </select>
-                          {filterOwner && <span className="absolute top-0 right-1 w-1.5 h-1.5 rounded-full bg-primary" />}
                         </div>
                         {/* Date filter dropdown */}
-                        <div className="relative">
+                        <div className="relative inline-flex items-center">
+                          {filterDate && <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-primary z-10" />}
                           <select
                             value={filterDate || ""}
                             onChange={e => setFilterDate(e.target.value || null)}
-                            className={`appearance-none text-[11px] pl-2.5 pr-6 py-1 rounded-full border transition-colors cursor-pointer bg-transparent ${filterDate ? "bg-primary/10 text-primary border-primary/25" : "text-muted-foreground border-border/50 hover:border-primary/25"}`}
+                            className={`appearance-none w-auto min-w-fit text-[12px] px-3 py-1 rounded-full border transition-colors cursor-pointer bg-transparent ${filterDate ? "bg-primary/10 text-primary border-primary/25" : "text-muted-foreground border-border/50 hover:border-primary/25"}`}
                           >
                             <option value="">All dates</option>
                             <option value="__none__">No due date</option>
@@ -506,7 +507,6 @@ export default function Index() {
                               <option key={d} value={d}>{d}</option>
                             ))}
                           </select>
-                          {filterDate && <span className="absolute top-0 right-1 w-1.5 h-1.5 rounded-full bg-primary" />}
                         </div>
                       </div>
                       <TaskList
