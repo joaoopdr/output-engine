@@ -21,12 +21,19 @@ TASK RULES (commitments only):
 - Deduplicate: same owner + similar title = merge.
 - If a later decision narrows scope, drop tasks that fall outside that scope.
 - When extracting due dates, preserve the exact phrase used in the transcript (e.g., 'tonight', 'tomorrow morning', 'by Friday'). Do not normalize or invent dates. The frontend will resolve these to actual datetimes.
+- RECAP ASSIGNMENTS: When a facilitator lists multiple tasks for one person in a recap ("Sam, you'll do X. Also Y. And Z."), create a SEPARATE task for each item — do not merge them into one.
+- CASUAL ACCEPTANCE: Informal acceptance counts as a commitment: "okay", "sure", "I can do that", "I'll write a couple" — these are valid commitments even from non-facilitator attendees.
+- SOFT HEDGES FROM FACILITATOR: If the facilitator suggests a task with a hedge ("add it if it's easy", "maybe do X", "if you have time"), do NOT create a task. Add to things_to_confirm: "Is [person] doing [X]?"
+- MERGED TASKS WITH MULTIPLE COMMITMENTS: If a facilitator assigns multiple distinct deliverables in one sentence ("rewrite the prompt AND write the phrase list"), create separate tasks for each deliverable, do not merge them.
 
 DECISION RULES:
 - Capture: scope constraints, product behavior rules, process agreements, naming/renaming decisions, timeline commitments the whole group agrees on.
 - Examples of what counts as a decision: "Phase 1 is weekly planning only", "cap tasks at 15", "rename tab to Things to confirm", "if meeting date missing keep relative text", "owner Unassigned forces confidence to low"
 - One sentence max. No explanations, no "because".
 - Do NOT only capture high-level strategy — capture operational rules agreed in the meeting too.
+- Capture decisions that emerge from multi-speaker discussion, not just single authoritative statements. If the group converges on a rule through back-and-forth ("it should only be blockers" / "yes" / "exactly"), that is a decision.
+- Capture architectural/product decisions too: repair pass strategy, evidence inclusion, dedupe approach, Friday scope.
+- Examples of decisions often missed: "repair pass before regenerate", "evidence required per item", "dedupe micro-tasks into one with bullets", "Friday demo = paste → outputs → edit → export only"
 
 THINGS TO CONFIRM RULES (execution blockers only):
 - Include ONLY items that block execution:
@@ -40,6 +47,9 @@ THINGS TO CONFIRM RULES (execution blockers only):
   add a thing_to_confirm: 'What is the deadline for [task]?'
 - Do NOT include: naming jokes, pure future ideas, general curiosities, items the group explicitly said are not blocking
 - Format as a direct question: "Is [person] doing [X]?", "What is the deadline for [X]?", "Who owns scheduling [X]?"
+- If the facilitator suggests a task with a hedge ("if it's easy", "if you have time", "don't go overboard"), add to things_to_confirm: "Is [person] doing [X]? It was flagged as optional."
+- If a decision was mostly but not fully resolved (someone said "that's basically decided" but no one gave a clean final answer), add to things_to_confirm with medium confidence.
+- If meeting date is not recorded or missing and the transcript contains relative dates, add to things_to_confirm: "Meeting date was not provided — relative dates like 'tonight' and 'tomorrow morning' could not be resolved. Please add the meeting date and regenerate."
 
 CONFIDENCE RULES:
 - high: named owner (from attendees list or clearly named) + explicit first-person commitment ("I'll do X", "I can do X") OR explicit facilitator assignment that was verbally accepted ("Sam, can you do X?" → "Will do" / "Sure")
@@ -55,6 +65,8 @@ OWNERS/DATES:
 - Never invent names or dates
 - If owner unclear: "Unassigned" + low confidence
 - If meeting date is missing, keep relative text ("tomorrow"), don't normalize
+- If the meeting date field is blank or says "(not recorded)", treat ALL relative dates as unresolvable. Set due_date_text to the exact phrase from transcript, set due_date_iso to null. Do not attempt to resolve.
+- New attendees who speak informally still count as valid owners if they accept a task.
 
 Return ONLY this JSON object (no markdown, no code blocks):
 {

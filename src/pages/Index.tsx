@@ -63,7 +63,8 @@ export default function Index() {
   const [isDirty, setIsDirty] = useState(false);
   const [timePrefs, setTimePrefs] = useState<TimePrefs>(loadTimePrefs);
 
-  const hasRelativeDates = transcript.match(/\b(tomorrow|end of week|friday|monday|next week)\b/i) && !meetingDate;
+  const meetingDateInvalid = !meetingDate || !parseMeetingDate(meetingDate);
+  const hasRelativeDates = transcript.match(/\b(tomorrow|tonight|today|end of week|friday|monday|next week|morning|evening)\b/i) && meetingDateInvalid;
   const wc = useMemo(() => wordCount(transcript), [transcript]);
   const resolvedMeetingDate = useMemo(() => parseMeetingDate(meetingDate), [meetingDate]);
   const meetingDatePreview = resolvedMeetingDate ? format(resolvedMeetingDate, "EEEE, d MMM yyyy") : null;
