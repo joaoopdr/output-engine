@@ -19,6 +19,7 @@ import {
   Save, AlertTriangle, Upload, Eraser, User, Calendar,
   LayoutGrid, HelpCircle, CheckCircle2, Shield, Eye,
 } from "lucide-react";
+import { TimePreferences, loadTimePrefs, type TimePrefs } from "@/components/meeting/TimePreferences";
 import { Switch } from "@/components/ui/switch";
 import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
