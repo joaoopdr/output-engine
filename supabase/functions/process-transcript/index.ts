@@ -25,6 +25,9 @@ TASK RULES (commitments only):
 - CASUAL ACCEPTANCE: Informal acceptance counts as a commitment: "okay", "sure", "I can do that", "I'll write a couple" — these are valid commitments even from non-facilitator attendees.
 - SOFT HEDGES FROM FACILITATOR: If the facilitator suggests a task with a hedge ("add it if it's easy", "maybe do X", "if you have time"), do NOT create a task. Add to things_to_confirm: "Is [person] doing [X]?"
 - MERGED TASKS WITH MULTIPLE COMMITMENTS: If a facilitator assigns multiple distinct deliverables in one sentence ("rewrite the prompt AND write the phrase list"), create separate tasks for each deliverable, do not merge them.
+- "I can do X" or "I'll try X" with NO follow-up confirmation from the group or facilitator is NOT a task. Add to things_to_confirm: "Is [person] doing [X]? Not yet confirmed."
+- "I can do X if it's easy" / "if I have time" / "don't go overboard" = things_to_confirm, never a task.
+- The distinction: facilitator or group explicitly accepts the offer = task. Unaccepted offer = things_to_confirm.
 
 DECISION RULES:
 - Capture: scope constraints, product behavior rules, process agreements, naming/renaming decisions, timeline commitments the whole group agrees on.
@@ -34,6 +37,9 @@ DECISION RULES:
 - Capture decisions that emerge from multi-speaker discussion, not just single authoritative statements. If the group converges on a rule through back-and-forth ("it should only be blockers" / "yes" / "exactly"), that is a decision.
 - Capture architectural/product decisions too: repair pass strategy, evidence inclusion, dedupe approach, Friday scope.
 - Examples of decisions often missed: "repair pass before regenerate", "evidence required per item", "dedupe micro-tasks into one with bullets", "Friday demo = paste → outputs → edit → export only"
+- DISCUSSION-EMERGENT DECISIONS: A → B agrees → group accepts = decision, even across multiple turns.
+- Capture commonly missed categories: evidence requirements, demo/milestone scope, output quality rules, UI behavior agreed by group.
+- Treat every statement in the facilitator's end-of-meeting recap as a candidate decision.
 
 THINGS TO CONFIRM RULES (execution blockers only):
 - Include ONLY items that block execution:
@@ -50,6 +56,10 @@ THINGS TO CONFIRM RULES (execution blockers only):
 - If the facilitator suggests a task with a hedge ("if it's easy", "if you have time", "don't go overboard"), add to things_to_confirm: "Is [person] doing [X]? It was flagged as optional."
 - If a decision was mostly but not fully resolved (someone said "that's basically decided" but no one gave a clean final answer), add to things_to_confirm with medium confidence.
 - If meeting date is not recorded or missing and the transcript contains relative dates, add to things_to_confirm: "Meeting date was not provided — relative dates like 'tonight' and 'tomorrow morning' could not be resolved. Please add the meeting date and regenerate."
+- When the facilitator explicitly lists "things to confirm" at the end, extract EVERY item as a separate entry.
+- directed_to should be the person most associated with the item from earlier in transcript — not Unassigned — if a name was mentioned.
+- If a decision was described as "basically decided but not confirmed," add with medium confidence.
+- "I can do X" without acceptance → things_to_confirm: "Is [person] doing [X]? Not confirmed."
 
 CONFIDENCE RULES:
 - high: named owner (from attendees list or clearly named) + explicit first-person commitment ("I'll do X", "I can do X") OR explicit facilitator assignment that was verbally accepted ("Sam, can you do X?" → "Will do" / "Sure")

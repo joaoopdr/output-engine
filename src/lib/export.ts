@@ -4,9 +4,14 @@ export function exportAsMarkdown(
   tasks: MeetingTask[],
   decisions: MeetingDecision[],
   questions: MeetingQuestion[],
-  title?: string
+  title?: string,
+  meetingDate?: string,
+  attendees?: string
 ): string {
-  let md = title ? `# ${title}\n\n` : "";
+  let md = `# ${title || "Untitled Meeting"}\n`;
+  md += `Date: ${meetingDate || "Date not recorded"}\n`;
+  md += `Attendees: ${attendees || "Not specified"}\n\n`;
+  md += "---\n\n";
 
   md += "## Tasks\n\n";
   tasks.forEach((t) => {
@@ -32,6 +37,37 @@ export function exportAsMarkdown(
   });
 
   return md.trim() + "\n";
+}
+
+export function exportAsPlainText(
+  tasks: MeetingTask[],
+  decisions: MeetingDecision[],
+  questions: MeetingQuestion[],
+  title?: string,
+  meetingDate?: string,
+  attendees?: string
+): string {
+  let txt = `Meeting: ${title || "Untitled Meeting"} — ${meetingDate || "Date not recorded"}\n`;
+  txt += `Attendees: ${attendees || "Not specified"}\n\n`;
+
+  txt += "TASKS\n";
+  tasks.forEach((t, i) => {
+    const due = t.due_date_display || t.due_date_text;
+    txt += `${i + 1}. ${t.owner || "Unassigned"} — ${t.title} (due ${due || "no date"})\n`;
+  });
+
+  txt += "\nDECISIONS\n";
+  decisions.forEach((d, i) => {
+    txt += `${i + 1}. ${d.decision}\n`;
+  });
+
+  txt += "\nTO CONFIRM\n";
+  questions.forEach((q, i) => {
+    const dir = q.directed_to ? ` → ${q.directed_to}` : "";
+    txt += `${i + 1}. ${q.question}${dir}\n`;
+  });
+
+  return txt.trim() + "\n";
 }
 
 export function exportAsJSON(
