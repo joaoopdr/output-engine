@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMeetingProcessor } from "@/hooks/use-meeting-processor";
@@ -9,7 +10,7 @@ import { DecisionList } from "@/components/meeting/DecisionList";
 import { ConfirmList } from "@/components/meeting/ConfirmList";
 import { OutputHeader } from "@/components/meeting/OutputHeader";
 import { CommandPalette } from "@/components/meeting/CommandPalette";
-import { exportAsMarkdown, exportAsJSON } from "@/lib/export";
+import { exportAsMarkdown, exportAsJSON, exportAsPlainText } from "@/lib/export";
 import { parseMeetingDate } from "@/lib/dateUtils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -18,6 +19,7 @@ import {
   Zap, Copy, FileJson, FileText, Loader2,
   Save, AlertTriangle, Upload, Eraser, User, Calendar,
   LayoutGrid, HelpCircle, CheckCircle2, Shield, Eye,
+  Sun, Moon, FileType,
 } from "lucide-react";
 import { TimePreferences, loadTimePrefs, type TimePrefs } from "@/components/meeting/TimePreferences";
 import { Switch } from "@/components/ui/switch";
@@ -41,6 +43,26 @@ function wordCount(text: string): number {
   return text.trim() ? text.trim().split(/\s+/).length : 0;
 }
 
+function ThemedLogo({ className = "h-7" }: { className?: string }) {
+  const { resolvedTheme } = useTheme();
+  const src = resolvedTheme === "dark" ? "/logo-dark.svg" : "/logo-light.svg";
+  return <img src={src} alt="BriefSync" className={className} />;
+}
+
+function ThemeToggle() {
+  const { resolvedTheme, setTheme } = useTheme();
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      className="h-7 w-7 text-muted-foreground hover:text-foreground"
+      onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+    >
+      {resolvedTheme === "dark" ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
+    </Button>
+  );
+}
+
 export default function Index() {
   const [transcript, setTranscript] = useState("");
   const [title, setTitle] = useState("");
@@ -49,12 +71,15 @@ export default function Index() {
   const { process, isProcessing, currentRun } = useMeetingProcessor();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const transcriptRef = useRef<HTMLTextAreaElement>(null);
+  const highlightRef = useRef<HTMLDivElement>(null);
+  const highlightTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
   const [tasks, setTasks] = useState<MeetingTask[]>([]);
   const [decisions, setDecisions] = useState<MeetingDecision[]>([]);
   const [questions, setQuestions] = useState<MeetingQuestion[]>([]);
   const [editNotes, setEditNotes] = useState("");
   const [heavyEdits, setHeavyEdits] = useState(false);
+  const [savedRecently, setSavedRecently] = useState(false);
   const [filterLow, setFilterLow] = useState(false);
   const [filterOwner, setFilterOwner] = useState<string | null>(null);
   const [filterDate, setFilterDate] = useState<string | null>(null);
@@ -122,20 +147,29 @@ export default function Index() {
       edit_notes: [editNotes, heavyEdits ? "[HEAVY EDITS]" : ""].filter(Boolean).join(" ") || null,
     });
     if (error) toast.error("Failed to save edits");
-    else { toast.success("Edits saved"); setIsDirty(false); }
+    else {
+      toast.success("Edits saved");
+      setIsDirty(false);
+      setSavedRecently(true);
+      setTimeout(() => setSavedRecently(false), 2000);
+    }
   };
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(exportAsMarkdown(tasks, decisions, questions, title));
+    navigator.clipboard.writeText(exportAsMarkdown(tasks, decisions, questions, title, meetingDate, attendees));
     toast.success("Copied to clipboard");
   };
 
   const handleExportMD = () => {
-    download(exportAsMarkdown(tasks, decisions, questions, title), `${title || "meeting-outputs"}.md`, "text/markdown");
+    download(exportAsMarkdown(tasks, decisions, questions, title, meetingDate, attendees), `${title || "meeting-outputs"}.md`, "text/markdown");
   };
 
   const handleExportJSON = () => {
     download(exportAsJSON(tasks, decisions, questions), `${title || "meeting-outputs"}.json`, "application/json");
+  };
+
+  const handleExportTXT = () => {
+    download(exportAsPlainText(tasks, decisions, questions, title, meetingDate, attendees), `${title || "meeting-outputs"}.txt`, "text/plain");
   };
 
   const handleClear = () => {
@@ -151,7 +185,18 @@ export default function Index() {
     if (idx >= 0) {
       transcriptRef.current.focus();
       transcriptRef.current.setSelectionRange(idx, idx + snippet.length);
-      transcriptRef.current.scrollTop = transcriptRef.current.scrollHeight * (idx / text.length);
+      const scrollRatio = idx / text.length;
+      transcriptRef.current.scrollTop = transcriptRef.current.scrollHeight * scrollRatio;
+
+      // Flash highlight overlay
+      if (highlightRef.current) {
+        const el = highlightRef.current;
+        const top = scrollRatio * transcriptRef.current.scrollHeight - transcriptRef.current.scrollTop;
+        el.style.top = `${Math.max(0, top)}px`;
+        el.style.opacity = "1";
+        if (highlightTimerRef.current) clearTimeout(highlightTimerRef.current);
+        highlightTimerRef.current = setTimeout(() => { el.style.opacity = "0"; }, 1200);
+      }
     }
   }, []);
 
@@ -213,16 +258,13 @@ export default function Index() {
 
   return (
     <TooltipProvider>
-      <div className="dark min-h-screen bg-background text-foreground">
+      <div className="min-h-screen bg-background text-foreground">
         <CommandPalette open={cmdOpen} onOpenChange={setCmdOpen} onAction={handleCommand} />
 
         {/* Header */}
         <header className="border-b border-border/60 px-5 py-2 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <Zap className="h-4 w-4 text-primary" />
-            <span className="text-xs font-medium tracking-wide text-muted-foreground">
-              Meetings → Work
-            </span>
+            <ThemedLogo className="h-5 w-auto" />
             <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
               Weekly Planning
             </span>
@@ -233,6 +275,7 @@ export default function Index() {
                 <LayoutGrid className="h-3.5 w-3.5" /> Batch
               </Button>
             </Link>
+            <ThemeToggle />
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground">
@@ -343,6 +386,12 @@ export default function Index() {
                     placeholder={"Paste your meeting transcript here...\nOr load an example →"}
                     className="transcript-textarea w-full h-full rounded-lg border border-input bg-transparent px-3.5 py-3 text-sm resize-none transition-colors placeholder:text-muted-foreground/60"
                   />
+                  {/* Evidence highlight overlay */}
+                  <div
+                    ref={highlightRef}
+                    className="absolute left-0 h-5 w-full bg-primary/20 rounded pointer-events-none transition-opacity duration-500"
+                    style={{ opacity: 0, top: 0 }}
+                  />
                   {wc > 0 && (
                     <span className="absolute bottom-2.5 right-3 text-[10px] text-muted-foreground/50 pointer-events-none">
                       {wc} words
@@ -350,9 +399,9 @@ export default function Index() {
                   )}
                 </div>
                 {hasRelativeDates && (
-                  <div className="mt-2 flex items-start gap-2 rounded-lg border border-confidence-medium/30 bg-confidence-medium/10 px-3 py-2">
-                    <AlertTriangle className="h-4 w-4 text-confidence-medium shrink-0 mt-0.5" />
-                    <p className="text-xs text-confidence-medium leading-snug">
+                  <div className="mt-2 flex items-start gap-2 rounded-lg border border-[hsl(var(--confidence-medium)/0.3)] bg-[hsl(var(--confidence-medium)/0.1)] px-3 py-2">
+                    <AlertTriangle className="h-4 w-4 text-[hsl(var(--confidence-medium))] shrink-0 mt-0.5" />
+                    <p className="text-xs text-[hsl(var(--confidence-medium))] leading-snug">
                       Meeting date is missing or unrecognised. Relative dates in this transcript ('tonight', 'tomorrow', 'Friday') cannot be resolved to real dates. Add a date above before generating.
                     </p>
                   </div>
@@ -394,6 +443,11 @@ export default function Index() {
                     <Eraser className="h-4 w-4" />
                   </Button>
                 </div>
+                {!hasOutputs && (
+                  <p className="text-[10px] text-muted-foreground text-center">
+                    Press <kbd className="px-1 py-0.5 rounded border border-border/60 bg-muted/50 text-[9px]">/</kbd> for commands
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -406,46 +460,22 @@ export default function Index() {
             {!hasOutputs ? (
               /* Empty state */
               <div className="flex-1 flex items-center justify-center">
-                <div className="text-center max-w-sm">
-                  {/* 3-step visual */}
-                  <div className="flex items-center justify-center gap-0 mb-8">
+                <div className="text-center max-w-sm space-y-6">
+                  <ThemedLogo className="h-7 mx-auto" />
+                  <p className="text-sm text-muted-foreground">Paste a transcript on the left and hit Generate</p>
+
+                  <div className="space-y-2 text-left mx-auto w-fit">
                     {[
-                      { num: 1, label: "Paste transcript" },
-                      { num: 2, label: "Hit Generate" },
-                      { num: 3, label: "Review & export" },
-                    ].map((step, i) => (
-                      <div key={step.num} className="flex items-center">
-                        {i > 0 && <div className="w-10 h-px bg-primary/20 mx-1" />}
-                        <div className="flex flex-col items-center gap-1.5">
-                          <div className="w-8 h-8 rounded-full border border-primary/40 flex items-center justify-center text-xs font-medium text-primary">
-                            {step.num}
-                          </div>
-                          <span className="text-[11px] text-muted-foreground whitespace-nowrap">{step.label}</span>
-                        </div>
+                      { keys: "⌘K or /", desc: "Open command palette" },
+                      { keys: "j / k", desc: "Navigate tasks with keyboard" },
+                      { keys: "Upload .txt", desc: "Or upload a transcript file" },
+                    ].map((hint) => (
+                      <div key={hint.keys} className="flex items-center gap-3 text-muted-foreground/60">
+                        <kbd className="px-2 py-0.5 rounded border border-border/50 bg-muted/30 text-[10px] font-mono min-w-[80px] text-center">{hint.keys}</kbd>
+                        <span className="text-[11px]">{hint.desc}</span>
                       </div>
                     ))}
                   </div>
-
-                  {/* Value chips */}
-                  <div className="flex items-center justify-center gap-2 mb-8">
-                    {[
-                      { icon: CheckCircle2, label: "Commitments only" },
-                      { icon: Eye, label: "Evidence shown" },
-                      { icon: FileText, label: "Export-ready" },
-                    ].map(({ icon: Icon, label }) => (
-                      <span key={label} className="flex items-center gap-1.5 text-[11px] text-muted-foreground/70 px-2.5 py-1 rounded-full border border-border/40 bg-primary/5">
-                        <Icon className="h-3 w-3 text-primary/60" />
-                        {label}
-                      </span>
-                    ))}
-                  </div>
-
-                  {/* Shortcut badge */}
-                  <p className="text-[11px] text-muted-foreground/50">
-                    Press{" "}
-                    <kbd className="px-1.5 py-0.5 rounded border border-border/60 bg-muted/50 text-[10px]">/</kbd>
-                    {" "}for commands
-                  </p>
                 </div>
               </div>
             ) : (
@@ -481,12 +511,12 @@ export default function Index() {
                     <TabsContent value="tasks" className="mt-0">
                       <div className="flex items-center gap-2 mb-3 w-fit">
                         {/* Owner filter dropdown */}
-                        <div className="relative inline-flex items-center w-fit">
+                        <div className="relative inline-flex items-center">
                           {filterOwner && <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-primary z-10" />}
                           <select
                             value={filterOwner || ""}
                             onChange={e => setFilterOwner(e.target.value || null)}
-                            className={`appearance-none w-fit text-xs px-3 py-1 rounded-full border transition-colors cursor-pointer bg-transparent ${filterOwner ? "bg-primary/10 text-primary border-primary/25" : "text-muted-foreground border-border/50 hover:border-primary/25"}`}
+                            className={`appearance-none text-xs px-3 py-1 rounded-full border transition-colors cursor-pointer bg-transparent ${filterOwner ? "bg-primary/10 text-primary border-primary/25" : "text-muted-foreground border-border/50 hover:border-primary/25"}`}
                           >
                             <option value="">All owners</option>
                             {[...new Set(tasks.map(t => t.owner))].sort().map(owner => (
@@ -495,12 +525,12 @@ export default function Index() {
                           </select>
                         </div>
                         {/* Date filter dropdown */}
-                        <div className="relative inline-flex items-center w-fit">
+                        <div className="relative inline-flex items-center">
                           {filterDate && <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-primary z-10" />}
                           <select
                             value={filterDate || ""}
                             onChange={e => setFilterDate(e.target.value || null)}
-                            className={`appearance-none w-fit text-xs px-3 py-1 rounded-full border transition-colors cursor-pointer bg-transparent ${filterDate ? "bg-primary/10 text-primary border-primary/25" : "text-muted-foreground border-border/50 hover:border-primary/25"}`}
+                            className={`appearance-none text-xs px-3 py-1 rounded-full border transition-colors cursor-pointer bg-transparent ${filterDate ? "bg-primary/10 text-primary border-primary/25" : "text-muted-foreground border-border/50 hover:border-primary/25"}`}
                           >
                             <option value="">All dates</option>
                             <option value="__none__">No due date</option>
@@ -553,6 +583,9 @@ export default function Index() {
                   <div className="flex items-center gap-1.5 shrink-0">
                     <Switch checked={heavyEdits} onCheckedChange={setHeavyEdits} className="scale-75" />
                     <span className="text-[11px] text-muted-foreground">Heavy edits</span>
+                    {savedRecently && (
+                      <CheckCircle2 className="h-3.5 w-3.5 text-[hsl(var(--confidence-high))] animate-in fade-in duration-300" />
+                    )}
                   </div>
                   <div className="h-4 w-px bg-border/40" />
                   <div className="flex items-center gap-0.5 border border-border/40 rounded-md px-0.5">
@@ -561,6 +594,9 @@ export default function Index() {
                     </Button>
                     <Button onClick={handleExportMD} variant="ghost" size="sm" className="text-xs h-7 gap-1 text-muted-foreground hover:text-foreground">
                       <FileText className="h-3 w-3" /> MD
+                    </Button>
+                    <Button onClick={handleExportTXT} variant="ghost" size="sm" className="text-xs h-7 gap-1 text-muted-foreground hover:text-foreground">
+                      <FileType className="h-3 w-3" /> TXT
                     </Button>
                     <Button onClick={handleExportJSON} variant="ghost" size="sm" className="text-xs h-7 gap-1 text-muted-foreground hover:text-foreground">
                       <FileJson className="h-3 w-3" /> JSON

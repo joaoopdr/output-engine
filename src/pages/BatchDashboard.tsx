@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
+import { useTheme } from "next-themes";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Zap, CheckCircle, XCircle, AlertTriangle, Upload, Loader2 } from "lucide-react";
@@ -10,6 +11,7 @@ interface RunSummary {
   id: string;
   transcript_case_id: string;
   title: string | null;
+  prompt_version: string;
   validation_status: string;
   created_at: string;
   task_count: number;
@@ -18,6 +20,12 @@ interface RunSummary {
   low_confidence_count: number;
   error_message: string | null;
   heavy_edits: boolean;
+}
+
+function ThemedLogo({ className = "h-7" }: { className?: string }) {
+  const { resolvedTheme } = useTheme();
+  const src = resolvedTheme === "dark" ? "/logo-dark.svg" : "/logo-light.svg";
+  return <img src={src} alt="BriefSync" className={className} />;
 }
 
 export default function BatchDashboard() {
@@ -32,7 +40,7 @@ export default function BatchDashboard() {
     setLoading(true);
     const { data: runsData } = await supabase
       .from("runs")
-      .select("id, transcript_case_id, validation_status, created_at, parsed_output_json, error_message")
+      .select("id, transcript_case_id, prompt_version, validation_status, created_at, parsed_output_json, error_message")
       .order("created_at", { ascending: false });
 
     if (!runsData) { setLoading(false); return; }
@@ -51,6 +59,7 @@ export default function BatchDashboard() {
         id: r.id,
         transcript_case_id: r.transcript_case_id,
         title: caseMap.get(r.transcript_case_id) || null,
+        prompt_version: r.prompt_version,
         validation_status: r.validation_status,
         created_at: r.created_at,
         task_count: tasks.length,
@@ -104,7 +113,7 @@ export default function BatchDashboard() {
 
         await supabase.from("runs").insert({
           transcript_case_id: tc.id,
-          prompt_version: "v2",
+          prompt_version: "v6",
           model_name: "google/gemini-3-flash-preview",
           raw_model_output: rawOutput,
           parsed_output_json: validation.output as any,
@@ -135,7 +144,7 @@ export default function BatchDashboard() {
   const pctHeavy = runs.length > 0 ? ((heavyEditsCount / runs.length) * 100).toFixed(0) : "0";
 
   return (
-    <div className="dark min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground">
       <header className="border-b px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Link to="/">
@@ -143,7 +152,7 @@ export default function BatchDashboard() {
               <ArrowLeft className="h-4 w-4" />
             </Button>
           </Link>
-          <Zap className="h-5 w-5 text-primary" />
+          <ThemedLogo className="h-5 w-auto" />
           <h1 className="text-sm font-semibold font-mono tracking-tight">BATCH EVALUATION</h1>
         </div>
         <div className="flex items-center gap-2">
@@ -173,6 +182,7 @@ export default function BatchDashboard() {
             <thead>
               <tr className="border-b bg-muted/80 sticky top-0 z-10">
                 <th className="text-left px-4 py-2 font-mono text-xs text-muted-foreground">Title</th>
+                <th className="text-center px-3 py-2 font-mono text-xs text-muted-foreground">Prompt</th>
                 <th className="text-center px-3 py-2 font-mono text-xs text-muted-foreground">Status</th>
                 <th className="text-center px-3 py-2 font-mono text-xs text-muted-foreground">Tasks</th>
                 <th className="text-center px-3 py-2 font-mono text-xs text-muted-foreground">Decisions</th>
@@ -184,19 +194,24 @@ export default function BatchDashboard() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={8} className="text-center py-8 text-muted-foreground font-mono text-xs">Loading...</td></tr>
+                <tr><td colSpan={9} className="text-center py-8 text-muted-foreground font-mono text-xs">Loading...</td></tr>
               ) : runs.length === 0 ? (
-                <tr><td colSpan={8} className="text-center py-8 text-muted-foreground font-mono text-xs">No runs yet. Upload .txt transcripts to start.</td></tr>
+                <tr><td colSpan={9} className="text-center py-8 text-muted-foreground font-mono text-xs">No runs yet. Upload .txt transcripts to start.</td></tr>
               ) : runs.map((r) => (
                 <tr key={r.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
                   <td className="px-4 py-1.5 font-medium truncate max-w-[200px]">{r.title || r.transcript_case_id.slice(0, 8)}</td>
                   <td className="text-center px-3 py-1.5">
+                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-muted text-muted-foreground border border-border/50">
+                      {r.prompt_version}
+                    </span>
+                  </td>
+                  <td className="text-center px-3 py-1.5">
                     {r.validation_status === "ok" ? (
-                      <CheckCircle className="h-4 w-4 text-confidence-high inline" />
+                      <CheckCircle className="h-4 w-4 text-[hsl(var(--confidence-high))] inline" />
                     ) : r.validation_status === "fail" ? (
                       <XCircle className="h-4 w-4 text-destructive inline" />
                     ) : (
-                      <AlertTriangle className="h-4 w-4 text-confidence-medium inline" />
+                      <AlertTriangle className="h-4 w-4 text-[hsl(var(--confidence-medium))] inline" />
                     )}
                   </td>
                   <td className="text-center px-3 py-1.5 font-mono">{r.task_count}</td>
@@ -204,7 +219,7 @@ export default function BatchDashboard() {
                   <td className="text-center px-3 py-1.5 font-mono">{r.question_count}</td>
                   <td className="text-center px-3 py-1.5">
                     {r.low_confidence_count > 0 ? (
-                      <span className="text-confidence-low font-mono">{r.low_confidence_count}</span>
+                      <span className="text-[hsl(var(--confidence-low))] font-mono">{r.low_confidence_count}</span>
                     ) : (
                       <span className="text-muted-foreground font-mono">0</span>
                     )}
