@@ -52,6 +52,50 @@ export type Database = {
           },
         ]
       }
+      gold_standards: {
+        Row: {
+          created_at: string
+          expected_decisions: Json
+          expected_tasks: Json
+          expected_things_to_confirm: Json
+          id: string
+          notes: string | null
+          transcript_case_id: string | null
+          transcript_text: string
+          transcript_title: string
+        }
+        Insert: {
+          created_at?: string
+          expected_decisions?: Json
+          expected_tasks?: Json
+          expected_things_to_confirm?: Json
+          id?: string
+          notes?: string | null
+          transcript_case_id?: string | null
+          transcript_text: string
+          transcript_title: string
+        }
+        Update: {
+          created_at?: string
+          expected_decisions?: Json
+          expected_tasks?: Json
+          expected_things_to_confirm?: Json
+          id?: string
+          notes?: string | null
+          transcript_case_id?: string | null
+          transcript_text?: string
+          transcript_title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gold_standards_transcript_case_id_fkey"
+            columns: ["transcript_case_id"]
+            isOneToOne: false
+            referencedRelation: "transcript_cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       runs: {
         Row: {
           created_at: string
