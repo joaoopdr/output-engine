@@ -129,7 +129,7 @@ export default function BatchDashboard() {
         const rawOutput = fnData?.raw_output || "";
         const validation = validateModelOutput(rawOutput);
         await supabase.from("runs").insert({
-          transcript_case_id: tc.id, prompt_version: "v6", model_name: "google/gemini-3-flash-preview",
+          transcript_case_id: tc.id, prompt_version: "v7", model_name: "google/gemini-3-flash-preview",
           raw_model_output: rawOutput, parsed_output_json: validation.output as any,
           validation_status: validation.valid ? "ok" : "fail",
           error_message: validation.errors.length > 0 ? validation.errors.join("; ") : null,
@@ -145,25 +145,39 @@ export default function BatchDashboard() {
   };
 
   const handleGsUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    try {
-      const text = await file.text();
-      const json = JSON.parse(text);
-      const { error } = await supabase.from("gold_standards").insert({
-        transcript_title: json.title || "Untitled",
-        transcript_text: json.transcript || "",
-        expected_tasks: json.expected?.tasks || [],
-        expected_decisions: json.expected?.decisions || [],
-        expected_things_to_confirm: json.expected?.things_to_confirm || [],
-        notes: json.notes || null,
-      } as any);
-      if (error) throw error;
-      toast.success("Gold standard uploaded");
-      await loadGoldStandards();
-    } catch (err: any) {
-      toast.error("Upload failed", { description: err.message });
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    let success = 0;
+    let fail = 0;
+    const total = files.length;
+
+    for (const file of files) {
+      try {
+        if (total > 1) toast.loading(`Uploading ${success + fail + 1}/${total}...`, { id: "gs-upload-progress" });
+        const text = await file.text();
+        const json = JSON.parse(text);
+        const { error } = await supabase.from("gold_standards").insert({
+          transcript_title: json.title || "Untitled",
+          transcript_text: json.transcript || "",
+          expected_tasks: json.expected?.tasks || [],
+          expected_decisions: json.expected?.decisions || [],
+          expected_things_to_confirm: json.expected?.things_to_confirm || [],
+          notes: json.notes || null,
+        } as any);
+        if (error) throw error;
+        success++;
+      } catch {
+        fail++;
+      }
     }
+
+    toast.dismiss("gs-upload-progress");
+    if (fail === 0) {
+      toast.success(`${success} gold standard${success > 1 ? "s" : ""} uploaded successfully`);
+    } else {
+      toast.warning(`${success} uploaded, ${fail} failed`);
+    }
+    await loadGoldStandards();
     e.target.value = "";
   };
 
@@ -223,7 +237,7 @@ export default function BatchDashboard() {
     if (scores.length > 0) {
       const avg = (arr: number[]) => arr.reduce((s, v) => s + v, 0) / arr.length;
       setCompareResults({
-        version: "v6",
+        version: "v7",
         avgScore: avg(scores.map(s => s.overall_score)),
         taskRecall: avg(scores.map(s => s.task_recall)),
         decisionRecall: avg(scores.map(s => s.decision_recall)),
@@ -337,10 +351,10 @@ export default function BatchDashboard() {
                 <Button variant="outline" size="sm" className="text-xs font-mono" onClick={() => gsFileRef.current?.click()}>
                   <Upload className="h-3 w-3 mr-1" /> Upload gold standard (.json)
                 </Button>
-                <input ref={gsFileRef} type="file" accept=".json" className="hidden" onChange={handleGsUpload} />
+                <input ref={gsFileRef} type="file" accept=".json" multiple className="hidden" onChange={handleGsUpload} />
                 <Button variant="outline" size="sm" className="text-xs font-mono" onClick={handleCompareAll} disabled={compareRunning || goldStandards.length === 0}>
                   {compareRunning ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Play className="h-3 w-3 mr-1" />}
-                  Compare all (v6)
+                  Compare all (v7)
                 </Button>
               </div>
 

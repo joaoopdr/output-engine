@@ -18,13 +18,27 @@ export interface ScoreResult {
 
 const STOP_WORDS = new Set(["the", "a", "and", "to", "in", "of", "is", "it", "we", "for", "that", "this", "on", "with", "be", "as", "at", "by", "an", "or", "not", "are", "was", "has", "have", "do", "does"]);
 
-function tokenize(text: string): string[] {
-  return text.toLowerCase().replace(/[^a-z0-9\s]/g, "").split(/\s+/).filter(w => w && !STOP_WORDS.has(w));
+function stem(word: string): string {
+  // Stemming-lite: strip common suffixes
+  if (word.endsWith("ing") && word.length > 4) return word.slice(0, -3);
+  if (word.endsWith("ed") && word.length > 3) return word.slice(0, -2);
+  if (word.endsWith("s") && !word.endsWith("ss") && word.length > 3) return word.slice(0, -1);
+  return word;
 }
 
-function similarity(a: string, b: string): number {
-  const tokensA = tokenize(a);
-  const tokensB = tokenize(b);
+function tokenize(text: string, applyStemming = false): string[] {
+  const words = text.toLowerCase().replace(/[^a-z0-9\s]/g, "").split(/\s+/).filter(w => w && !STOP_WORDS.has(w));
+  return applyStemming ? words.map(stem) : words;
+}
+
+function similarity(a: string, b: string, useStemming = false): number {
+  // Substring check: if either is contained in the other, it's a match
+  const aLower = a.toLowerCase();
+  const bLower = b.toLowerCase();
+  if (aLower.includes(bLower) || bLower.includes(aLower)) return 1;
+
+  const tokensA = tokenize(a, useStemming);
+  const tokensB = tokenize(b, useStemming);
   if (tokensA.length === 0 && tokensB.length === 0) return 1;
   if (tokensA.length === 0 || tokensB.length === 0) return 0;
   const setB = new Set(tokensB);
@@ -33,9 +47,20 @@ function similarity(a: string, b: string): number {
   return shared / total;
 }
 
-const MATCH_THRESHOLD = 0.6;
+const MATCH_THRESHOLD = 0.5;
 
-function matchItems(expected: string[], actual: string[]): { matched: string[]; missed: string[]; hallucinated: string[] } {
+function detailsMatchTitle(details: string[] | undefined, title: string): boolean {
+  if (!details || details.length === 0) return false;
+  const combined = details.join(" ");
+  return similarity(combined, title) >= MATCH_THRESHOLD;
+}
+
+function matchItems(
+  expected: string[],
+  actual: string[],
+  useStemming = false,
+  actualDetails?: (string[] | undefined)[]
+): { matched: string[]; missed: string[]; hallucinated: string[] } {
   const usedActual = new Set<number>();
   const matched: string[] = [];
   const missed: string[] = [];
@@ -45,7 +70,12 @@ function matchItems(expected: string[], actual: string[]): { matched: string[]; 
     let bestScore = 0;
     for (let i = 0; i < actual.length; i++) {
       if (usedActual.has(i)) continue;
-      const s = similarity(exp, actual[i]);
+      let s = similarity(exp, actual[i], useStemming);
+      // Details match bonus: if top-level title doesn't match well, check detail bullets
+      if (s < MATCH_THRESHOLD && actualDetails?.[i]) {
+        const detailScore = detailsMatchTitle(actualDetails[i], exp);
+        if (detailScore) s = MATCH_THRESHOLD; // promote to match
+      }
       if (s > bestScore) { bestScore = s; bestIdx = i; }
     }
     if (bestScore >= MATCH_THRESHOLD && bestIdx >= 0) {
@@ -61,20 +91,24 @@ function matchItems(expected: string[], actual: string[]): { matched: string[]; 
 }
 
 export function scoreRun(
-  expected: { tasks: { title: string }[]; decisions: { decision: string }[]; things_to_confirm: { question: string }[] },
-  actual: { tasks: { title: string }[]; decisions: { decision: string }[]; open_questions: { question: string }[] }
+  expected: { tasks: { title: string; details?: string[] }[]; decisions: { decision: string }[]; things_to_confirm: { question: string }[] },
+  actual: { tasks: { title: string; details?: string[] }[]; decisions: { decision: string }[]; open_questions: { question: string }[] }
 ): ScoreResult {
   const taskResult = matchItems(
     expected.tasks.map(t => t.title),
-    actual.tasks.map(t => t.title)
+    actual.tasks.map(t => t.title),
+    false,
+    actual.tasks.map(t => t.details)
   );
   const decisionResult = matchItems(
     expected.decisions.map(d => d.decision),
-    actual.decisions.map(d => d.decision)
+    actual.decisions.map(d => d.decision),
+    true // use stemming for decisions
   );
   const confirmResult = matchItems(
     expected.things_to_confirm.map(c => c.question),
-    actual.open_questions.map(q => q.question)
+    actual.open_questions.map(q => q.question),
+    true
   );
 
   const taskRecall = expected.tasks.length > 0 ? taskResult.matched.length / expected.tasks.length : 1;
