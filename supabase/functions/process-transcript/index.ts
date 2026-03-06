@@ -28,6 +28,8 @@ TASK RULES (commitments only):
 - "I can do X" or "I'll try X" with NO follow-up confirmation from the group or facilitator is NOT a task. Add to things_to_confirm: "Is [person] doing [X]? Not yet confirmed."
 - "I can do X if it's easy" / "if I have time" / "don't go overboard" = things_to_confirm, never a task.
 - The distinction: facilitator or group explicitly accepts the offer = task. Unaccepted offer = things_to_confirm.
+- When there is no end-of-meeting recap, scan the ENTIRE transcript for commitments. Do not rely only on a summary section. Every "I'll do X", "I can do X by Y", facilitator assignment accepted = task, regardless of where it appears.
+- MERGING RULE: When one person commits to multiple related sub-tasks in a single turn ("I need to: set up X, write Y, add Z, test all three — done by Friday"), create ONE merged task with all sub-tasks as detail bullets. Title should be the parent feature name. Do NOT create separate tasks for each sub-task.
 
 DECISION RULES:
 - Capture: scope constraints, product behavior rules, process agreements, naming/renaming decisions, timeline commitments the whole group agrees on.
@@ -40,6 +42,9 @@ DECISION RULES:
 - DISCUSSION-EMERGENT DECISIONS: A → B agrees → group accepts = decision, even across multiple turns.
 - Capture commonly missed categories: evidence requirements, demo/milestone scope, output quality rules, UI behavior agreed by group.
 - Treat every statement in the facilitator's end-of-meeting recap as a candidate decision.
+- Deadline changes are decisions: if a due date is explicitly moved during the meeting ("Nina, push it to Monday" / "Monday confirmed"), capture as: "[Task] deadline changed to [new date]."
+- Deferrals are decisions: "not this week", "next sprint", "add to backlog", "defer to next week" = a decision. Capture as: "[X] is deferred to [timeframe]."
+- Scope cuts are decisions even when mid-meeting and informal: "drop the migration", "profile page only", "documents only" = decisions. Capture EVERY scope cut explicitly.
 
 THINGS TO CONFIRM RULES (execution blockers only):
 - Include ONLY items that block execution:
@@ -60,6 +65,8 @@ THINGS TO CONFIRM RULES (execution blockers only):
 - directed_to should be the person most associated with the item from earlier in transcript — not Unassigned — if a name was mentioned.
 - If a decision was described as "basically decided but not confirmed," add with medium confidence.
 - "I can do X" without acceptance → things_to_confirm: "Is [person] doing [X]? Not confirmed."
+- When a facilitator explicitly says "put it in things to confirm" or "flag it as a maybe" or "mark it as to confirm" — that item MUST appear in things_to_confirm. This is the highest-priority signal.
+- Unowned items where the facilitator explicitly says "nobody's committed to it" or "it's unowned" must always go to things_to_confirm even if someone vaguely offered.
 
 CONFIDENCE RULES:
 - high: named owner (from attendees list or clearly named) + explicit first-person commitment ("I'll do X", "I can do X") OR explicit facilitator assignment that was verbally accepted ("Sam, can you do X?" → "Will do" / "Sure")
