@@ -1,0 +1,117 @@
+export interface ScoreResult {
+  task_recall: number;
+  task_precision: number;
+  task_hallucinations: number;
+  decision_recall: number;
+  decision_precision: number;
+  confirm_recall: number;
+  confirm_precision: number;
+  overall_score: number;
+  matched_tasks: string[];
+  missed_tasks: string[];
+  hallucinated_tasks: string[];
+  matched_decisions: string[];
+  missed_decisions: string[];
+  matched_confirms: string[];
+  missed_confirms: string[];
+}
+
+const STOP_WORDS = new Set(["the", "a", "and", "to", "in", "of", "is", "it", "we", "for", "that", "this", "on", "with", "be", "as", "at", "by", "an", "or", "not", "are", "was", "has", "have", "do", "does"]);
+
+function tokenize(text: string): string[] {
+  return text.toLowerCase().replace(/[^a-z0-9\s]/g, "").split(/\s+/).filter(w => w && !STOP_WORDS.has(w));
+}
+
+function similarity(a: string, b: string): number {
+  const tokensA = tokenize(a);
+  const tokensB = tokenize(b);
+  if (tokensA.length === 0 && tokensB.length === 0) return 1;
+  if (tokensA.length === 0 || tokensB.length === 0) return 0;
+  const setB = new Set(tokensB);
+  const shared = tokensA.filter(t => setB.has(t)).length;
+  const total = Math.max(tokensA.length, tokensB.length);
+  return shared / total;
+}
+
+const MATCH_THRESHOLD = 0.6;
+
+function matchItems(expected: string[], actual: string[]): { matched: string[]; missed: string[]; hallucinated: string[] } {
+  const usedActual = new Set<number>();
+  const matched: string[] = [];
+  const missed: string[] = [];
+
+  for (const exp of expected) {
+    let bestIdx = -1;
+    let bestScore = 0;
+    for (let i = 0; i < actual.length; i++) {
+      if (usedActual.has(i)) continue;
+      const s = similarity(exp, actual[i]);
+      if (s > bestScore) { bestScore = s; bestIdx = i; }
+    }
+    if (bestScore >= MATCH_THRESHOLD && bestIdx >= 0) {
+      matched.push(exp);
+      usedActual.add(bestIdx);
+    } else {
+      missed.push(exp);
+    }
+  }
+
+  const hallucinated = actual.filter((_, i) => !usedActual.has(i));
+  return { matched, missed, hallucinated };
+}
+
+export function scoreRun(
+  expected: { tasks: { title: string }[]; decisions: { decision: string }[]; things_to_confirm: { question: string }[] },
+  actual: { tasks: { title: string }[]; decisions: { decision: string }[]; open_questions: { question: string }[] }
+): ScoreResult {
+  const taskResult = matchItems(
+    expected.tasks.map(t => t.title),
+    actual.tasks.map(t => t.title)
+  );
+  const decisionResult = matchItems(
+    expected.decisions.map(d => d.decision),
+    actual.decisions.map(d => d.decision)
+  );
+  const confirmResult = matchItems(
+    expected.things_to_confirm.map(c => c.question),
+    actual.open_questions.map(q => q.question)
+  );
+
+  const taskRecall = expected.tasks.length > 0 ? taskResult.matched.length / expected.tasks.length : 1;
+  const taskPrecision = actual.tasks.length > 0 ? taskResult.matched.length / actual.tasks.length : 1;
+  const decisionRecall = expected.decisions.length > 0 ? decisionResult.matched.length / expected.decisions.length : 1;
+  const decisionPrecision = actual.decisions.length > 0 ? decisionResult.matched.length / actual.decisions.length : 1;
+  const confirmRecall = expected.things_to_confirm.length > 0 ? confirmResult.matched.length / expected.things_to_confirm.length : 1;
+  const confirmPrecision = actual.open_questions.length > 0 ? confirmResult.matched.length / actual.open_questions.length : 1;
+
+  const taskScore = (taskRecall + taskPrecision) / 2;
+  const decisionScore = (decisionRecall + decisionPrecision) / 2;
+  const confirmScore = (confirmRecall + confirmPrecision) / 2;
+  const overall = taskScore * 0.5 + decisionScore * 0.3 + confirmScore * 0.2;
+
+  return {
+    task_recall: taskRecall,
+    task_precision: taskPrecision,
+    task_hallucinations: taskResult.hallucinated.length,
+    decision_recall: decisionRecall,
+    decision_precision: decisionPrecision,
+    confirm_recall: confirmRecall,
+    confirm_precision: confirmPrecision,
+    overall_score: overall,
+    matched_tasks: taskResult.matched,
+    missed_tasks: taskResult.missed,
+    hallucinated_tasks: taskResult.hallucinated,
+    matched_decisions: decisionResult.matched,
+    missed_decisions: decisionResult.missed,
+    matched_confirms: confirmResult.matched,
+    missed_confirms: confirmResult.missed,
+  };
+}
+
+export function formatScore(score: number): string {
+  const pct = Math.round(score * 100);
+  if (pct >= 90) return "A";
+  if (pct >= 80) return "B";
+  if (pct >= 70) return "C";
+  return "F";
+}

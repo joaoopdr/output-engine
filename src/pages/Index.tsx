@@ -44,9 +44,12 @@ function wordCount(text: string): number {
 }
 
 function ThemedLogo({ className = "h-7" }: { className?: string }) {
-  const { resolvedTheme } = useTheme();
-  const src = resolvedTheme === "dark" ? "/logo-dark.svg" : "/logo-light.svg";
-  return <img src={src} alt="BriefSync" className={className} />;
+  return (
+    <>
+      <img src="/logo-dark.png" alt="BriefSync" className={`${className} dark:block hidden`} />
+      <img src="/logo-light.png" alt="BriefSync" className={`${className} dark:hidden block`} />
+    </>
+  );
 }
 
 function ThemeToggle() {
@@ -111,6 +114,13 @@ export default function Index() {
 
   const handleGenerate = async () => {
     if (!transcript.trim()) { toast.error("Paste a transcript first"); return; }
+    if (hasRelativeDates) {
+      toast.warning("Relative dates detected", {
+        description: "This transcript contains words like 'tomorrow' or 'tonight'. Add a meeting date so deadlines resolve correctly.",
+        duration: 8000,
+        id: "relative-date-warning",
+      });
+    }
     const result = await process({
       transcript_text: transcript, title, attendees,
       template_type: "weekly_planning", meeting_date: meetingDate,
@@ -398,14 +408,6 @@ export default function Index() {
                     </span>
                   )}
                 </div>
-                {hasRelativeDates && (
-                  <div className="mt-2 flex items-start gap-2 rounded-lg border border-[hsl(var(--confidence-medium)/0.3)] bg-[hsl(var(--confidence-medium)/0.1)] px-3 py-2">
-                    <AlertTriangle className="h-4 w-4 text-[hsl(var(--confidence-medium))] shrink-0 mt-0.5" />
-                    <p className="text-xs text-[hsl(var(--confidence-medium))] leading-snug">
-                      Meeting date is missing or unrecognised. Relative dates in this transcript ('tonight', 'tomorrow', 'Friday') cannot be resolved to real dates. Add a date above before generating.
-                    </p>
-                  </div>
-                )}
               </div>
 
               {/* Generate area */}
