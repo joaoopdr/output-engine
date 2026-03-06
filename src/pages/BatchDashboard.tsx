@@ -23,9 +23,12 @@ interface RunSummary {
 }
 
 function ThemedLogo({ className = "h-7" }: { className?: string }) {
-  const { resolvedTheme } = useTheme();
-  const src = resolvedTheme === "dark" ? "/logo-dark.svg" : "/logo-light.svg";
-  return <img src={src} alt="BriefSync" className={className} />;
+  return (
+    <>
+      <img src="/logo-dark.png" alt="BriefSync" className={`${className} dark:block hidden`} />
+      <img src="/logo-light.png" alt="BriefSync" className={`${className} dark:hidden block`} />
+    </>
+  );
 }
 
 export default function BatchDashboard() {
