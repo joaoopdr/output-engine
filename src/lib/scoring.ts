@@ -18,8 +18,23 @@ export interface ScoreResult {
 
 const STOP_WORDS = new Set(["the", "a", "and", "to", "in", "of", "is", "it", "we", "for", "that", "this", "on", "with", "be", "as", "at", "by", "an", "or", "not", "are", "was", "has", "have", "do", "does"]);
 
+const VERB_SYNONYMS: Record<string, string> = {
+  "deliver": "build",
+  "complete": "implement",
+  "finish": "implement",
+  "create": "build",
+  "develop": "implement",
+  "ship": "build",
+  "produce": "create",
+  "write": "draft",
+  "draft": "write",
+};
+
+function normalizeWord(w: string): string {
+  return VERB_SYNONYMS[w] || w;
+}
+
 function stem(word: string): string {
-  // Stemming-lite: strip common suffixes
   if (word.endsWith("ing") && word.length > 4) return word.slice(0, -3);
   if (word.endsWith("ed") && word.length > 3) return word.slice(0, -2);
   if (word.endsWith("s") && !word.endsWith("ss") && word.length > 3) return word.slice(0, -1);
@@ -28,11 +43,17 @@ function stem(word: string): string {
 
 function tokenize(text: string, applyStemming = false): string[] {
   const words = text.toLowerCase().replace(/[^a-z0-9\s]/g, "").split(/\s+/).filter(w => w && !STOP_WORDS.has(w));
-  return applyStemming ? words.map(stem) : words;
+  return applyStemming ? words.map(stem).map(normalizeWord) : words.map(normalizeWord);
+}
+
+function wordContainment(shorter: string[], longer: string[]): number {
+  if (shorter.length === 0) return 0;
+  const longerSet = new Set(longer);
+  const matched = shorter.filter(w => longerSet.has(w)).length;
+  return matched / shorter.length;
 }
 
 function similarity(a: string, b: string, useStemming = false): number {
-  // Substring check: if either is contained in the other, it's a match
   const aLower = a.toLowerCase();
   const bLower = b.toLowerCase();
   if (aLower.includes(bLower) || bLower.includes(aLower)) return 1;
@@ -41,6 +62,11 @@ function similarity(a: string, b: string, useStemming = false): number {
   const tokensB = tokenize(b, useStemming);
   if (tokensA.length === 0 && tokensB.length === 0) return 1;
   if (tokensA.length === 0 || tokensB.length === 0) return 0;
+
+  // 80%+ word containment check
+  const [shorter, longer] = tokensA.length <= tokensB.length ? [tokensA, tokensB] : [tokensB, tokensA];
+  if (wordContainment(shorter, longer) >= 0.8) return 1;
+
   const setB = new Set(tokensB);
   const shared = tokensA.filter(t => setB.has(t)).length;
   const total = Math.max(tokensA.length, tokensB.length);
@@ -71,10 +97,9 @@ function matchItems(
     for (let i = 0; i < actual.length; i++) {
       if (usedActual.has(i)) continue;
       let s = similarity(exp, actual[i], useStemming);
-      // Details match bonus: if top-level title doesn't match well, check detail bullets
       if (s < MATCH_THRESHOLD && actualDetails?.[i]) {
         const detailScore = detailsMatchTitle(actualDetails[i], exp);
-        if (detailScore) s = MATCH_THRESHOLD; // promote to match
+        if (detailScore) s = MATCH_THRESHOLD;
       }
       if (s > bestScore) { bestScore = s; bestIdx = i; }
     }
@@ -103,7 +128,7 @@ export function scoreRun(
   const decisionResult = matchItems(
     expected.decisions.map(d => d.decision),
     actual.decisions.map(d => d.decision),
-    true // use stemming for decisions
+    true
   );
   const confirmResult = matchItems(
     expected.things_to_confirm.map(c => c.question),
