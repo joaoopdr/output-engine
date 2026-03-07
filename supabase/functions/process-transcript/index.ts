@@ -12,6 +12,9 @@ Do not summarize. Output only the JSON schema below. No markdown, no code blocks
 TASK RULES (commitments only):
 - A Task exists ONLY if: (a) someone volunteers in first person ("I'll do it", "I can deliver that"), (b) the facilitator assigns AND the person accepts ("Sam, can you?" → "Will do"), or (c) the group commits explicitly ("We need to ship X this week").
 - "We should", "maybe", "could", "I think we need to" → NOT a task. Add to things_to_confirm instead: "Is someone owning [X]?"
+- WE-SHOULD ABSOLUTE FILTER: Scan the entire transcript before outputting tasks. If topic X first appears as "we should X" or "we need to X" (without a named owner committing), and later the same topic appears as an explicit commitment by a named person, output ONLY the explicit commitment version. The vague version must be completely suppressed — do not output both.
+- If topic X appears ONLY as "we should X" with no follow-up explicit commitment, it goes to things_to_confirm, never to tasks.
+- EXAMPLE: "Josh: We should improve search performance." → not a task. "Mei: I'll do the search performance work by Friday." → task. Output only Mei's task.
 - Hedged commitments ("I can start it Saturday IF Friday demo lands") → NOT a task. Add to things_to_confirm: "Is [person] doing [X]? Conditional on [condition]."
 - Deferred items ("we'll schedule that tomorrow") → Add to things_to_confirm: "Who is scheduling [X] and when?"
 - Use verb-first titles: "Send…", "Draft…", "Implement…", "Deliver…"
@@ -30,6 +33,7 @@ TASK RULES (commitments only):
 - The distinction: facilitator or group explicitly accepts the offer = task. Unaccepted offer = things_to_confirm.
 - When there is no end-of-meeting recap, scan the ENTIRE transcript for commitments. Do not rely only on a summary section. Every "I'll do X", "I can do X by Y", facilitator assignment accepted = task, regardless of where it appears.
 - MERGING RULE: When one person commits to multiple related sub-tasks in a single turn ("I need to: set up X, write Y, add Z, test all three — done by Friday"), create ONE merged task with all sub-tasks as detail bullets. Title should be the parent feature name. Do NOT create separate tasks for each sub-task.
+- JOKE TASK DETECTION — HARD RULE: If a "task" is assigned as part of a joke exchange where: (a) the task is absurd or non-work-related (e.g. "deliver snacks", "stop having meetings", "be funnier"), (b) OR the assignment uses obviously joking framing ("Owner: Dan. Due: always.", "someone write that down" said sarcastically), (c) OR the response is laughter, mockery, or continuation of the joke rather than genuine acceptance — then DO NOT create a task under any circumstances, even if commitment language was used. EXAMPLE: "Jo: I nominate Dan to be permanently in charge of snacks. Dan: I accept. Mike: Dan, deliver snacks. Owner: Dan. Due: always." = JOKE. No task.
 
 DECISION RULES:
 - Capture: scope constraints, product behavior rules, process agreements, naming/renaming decisions, timeline commitments the whole group agrees on.
@@ -45,6 +49,7 @@ DECISION RULES:
 - Deadline changes are decisions: if a due date is explicitly moved during the meeting ("Nina, push it to Monday" / "Monday confirmed"), capture as: "[Task] deadline changed to [new date]."
 - Deferrals are decisions: "not this week", "next sprint", "add to backlog", "defer to next week" = a decision. Capture as: "[X] is deferred to [timeframe]."
 - Scope cuts are decisions even when mid-meeting and informal: "drop the migration", "profile page only", "documents only" = decisions. Capture EVERY scope cut explicitly.
+- SCOPE CUT = MANDATORY DECISION: Every time scope is reduced, paused, or cut — no matter how casually stated — you MUST output a decision. This is non-negotiable. Required format: "[Items] are [dropped/paused/out of scope] [for this period/due to reason]." Trigger words: "only", "just", "drop", "paused", "out of scope", "not this week", "profile page only", "documents only", "focus only on". EXAMPLE: "Owen: This week: profile page only. Dashboard, dark mode, settings — all paused." → Decision 1: "Scope is cut to user profile page only due to a customer demo on Thursday." → Decision 2: "Dashboard layout, dark mode toggle, and settings panel are paused this week." Both decisions are mandatory. Do not output only one.
 
 THINGS TO CONFIRM RULES (execution blockers only):
 - Include ONLY items that block execution:
@@ -67,6 +72,7 @@ THINGS TO CONFIRM RULES (execution blockers only):
 - "I can do X" without acceptance → things_to_confirm: "Is [person] doing [X]? Not confirmed."
 - When a facilitator explicitly says "put it in things to confirm" or "flag it as a maybe" or "mark it as to confirm" — that item MUST appear in things_to_confirm. This is the highest-priority signal.
 - Unowned items where the facilitator explicitly says "nobody's committed to it" or "it's unowned" must always go to things_to_confirm even if someone vaguely offered.
+- UNOWNED ITEMS AFTER WE-SHOULD DISCUSSION: If the group discusses "we should do X" and the facilitator explicitly asks "who is taking it?" and nobody commits, this MUST go to things_to_confirm: "Who owns [X] and when?" even if someone said "I could do it" (soft offer ≠ commitment).
 
 CONFIDENCE RULES:
 - high: named owner (from attendees list or clearly named) + explicit first-person commitment ("I'll do X", "I can do X") OR explicit facilitator assignment that was verbally accepted ("Sam, can you do X?" → "Will do" / "Sure")
