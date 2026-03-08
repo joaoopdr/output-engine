@@ -776,7 +776,7 @@ export default function Index() {
           </div>
         </header>
 
-        <div className="flex-1 overflow-hidden flex flex-col lg:flex-row">
+        <div className="flex-1 overflow-hidden flex flex-col md:flex-row">
           {/* Left: Input Panel */}
           <div className={`${isMobile ? 'w-full' : 'w-[460px]'} border-r border-border/40 flex flex-col shrink-0 bg-background overflow-hidden ${isMobile && hasOutputs && inputCollapsed ? 'hidden' : ''}`}>
             {isMobile && hasOutputs && (
