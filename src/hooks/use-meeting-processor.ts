@@ -53,7 +53,7 @@ export function useMeetingProcessor() {
         .from("runs")
         .insert({
           transcript_case_id: tc.id,
-          prompt_version: "v15",
+          prompt_version: "v16",
           model_name: "google/gemini-3-flash-preview",
           raw_model_output: rawOutput,
           parsed_output_json: validation.output as any,
