@@ -187,7 +187,7 @@ Return ONLY this JSON:
   "things_to_confirm": [
     {"question": "string", "directed_to": "string", "confidence": "high|medium|low", "evidence": ["string"]}
   ]
-const SPRINT_SYSTEM_PROMPT = `You extract structured execution items from Sprint Planning transcripts — meetings where an engineering team decides what to build in the upcoming sprint.
+const SPRINT_SYSTEM_PROMPT = `You extract structured execution items from Sprint Planning transcripts -- meetings where an engineering team decides what to build in the upcoming sprint.
 
 Do not summarize. Output only the JSON schema below. No markdown, no code blocks.
 
