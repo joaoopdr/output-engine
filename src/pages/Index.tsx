@@ -14,7 +14,7 @@ import { exportAsMarkdown, exportAsJSON, exportAsPlainText } from "@/lib/export"
 import { parseMeetingDate } from "@/lib/dateUtils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import type { MeetingTask, MeetingDecision, MeetingQuestion, TemplateType, HandoffContext } from "@/types/meeting";
+import type { MeetingTask, MeetingDecision, MeetingQuestion, TemplateType, HandoffContext, SprintContext } from "@/types/meeting";
 import { TEMPLATE_OPTIONS } from "@/types/meeting";
 import {
   Zap, Copy, FileJson, FileText, Loader2,
