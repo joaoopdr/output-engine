@@ -371,6 +371,25 @@ export default function Index() {
       setSprintContext(result.output.sprint_context || null);
       setIsDirty(false);
       setFilterSide("all");
+
+      // Save to history
+      const entry: HistoryEntry = {
+        id: crypto.randomUUID(),
+        title: title || "Untitled",
+        template_type: templateType,
+        meeting_date: meetingDate,
+        saved_at: new Date().toISOString(),
+        task_count: result.output.tasks.length,
+        decision_count: result.output.decisions.length,
+        question_count: result.output.open_questions.length,
+        tasks: result.output.tasks,
+        decisions: result.output.decisions,
+        questions: result.output.open_questions,
+        transcript,
+        attendees,
+      };
+      saveToHistory(entry);
+      setHistory(loadHistory());
     }
   };
 
