@@ -53,6 +53,8 @@ DECISION RULES:
 - Scope cuts are decisions even when mid-meeting and informal: "drop the migration", "profile page only", "documents only" = decisions. Capture EVERY scope cut explicitly.
 - SCOPE CUT = MANDATORY DECISION: Every time scope is reduced, paused, or cut — no matter how casually stated — you MUST output a decision. This is non-negotiable. Required format: "[Items] are [dropped/paused/out of scope] [for this period/due to reason]." Trigger words: "only", "just", "drop", "paused", "out of scope", "not this week", "profile page only", "documents only", "focus only on". EXAMPLE: "Owen: This week: profile page only. Dashboard, dark mode, settings — all paused." → Decision 1: "Scope is cut to user profile page only due to a customer demo on Thursday." → Decision 2: "Dashboard layout, dark mode toggle, and settings panel are paused this week." Both decisions are mandatory. Do not output only one.
 - SCOPE NARROWING MID-SENTENCE: "search should only cover documents", "let's scope it down", "documents only" = scope decision even in casual phrasing. Always capture as: "[Feature] is scoped to [narrowed scope] for now."
+- SCOPE DECISIONS MUST BE TOP-LEVEL: If a scope constraint is mentioned as part of a task ("Fix mobile nav — hamburger menu only, not the full nav"), extract the scope constraint as a SEPARATE decision: "Mobile nav fix is scoped to hamburger menu only." Do not bury scope constraints inside task detail bullets. They must appear in decisions[].
+- FEATURE SCOPE NARROWING: Any phrase like "only", "just", "limited to", "scoped to", "not the full X" attached to a feature or task = extract a standalone scope decision.
 
 THINGS TO CONFIRM RULES (execution blockers only):
 - Include ONLY items that block execution:
