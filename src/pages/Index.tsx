@@ -537,7 +537,6 @@ export default function Index() {
     setWhatsNewSeen(true);
     localStorage.setItem("briefs_whats_new_seen", "true");
   };
-  };
 
   const handleEvidenceClick = useCallback((snippet: string) => {
     if (!transcriptRef.current) return;
