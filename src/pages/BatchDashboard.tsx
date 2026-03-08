@@ -34,7 +34,7 @@ interface GoldStandard {
   created_at: string;
 }
 
-function ThemedLogo({ className = "h-7" }: { className?: string }) {
+function ThemedLogo({ className = "h-9" }: { className?: string }) {
   return (
     <>
       <img src="/logo-dark.png" alt="BriefSync" className={`${className} dark:block hidden`} />
@@ -129,7 +129,7 @@ export default function BatchDashboard() {
         const rawOutput = fnData?.raw_output || "";
         const validation = validateModelOutput(rawOutput);
         await supabase.from("runs").insert({
-          transcript_case_id: tc.id, prompt_version: "v9", model_name: "google/gemini-3-flash-preview",
+          transcript_case_id: tc.id, prompt_version: "v10", model_name: "google/gemini-3-flash-preview",
           raw_model_output: rawOutput, parsed_output_json: validation.output as any,
           validation_status: validation.valid ? "ok" : "fail",
           error_message: validation.errors.length > 0 ? validation.errors.join("; ") : null,
@@ -237,7 +237,7 @@ export default function BatchDashboard() {
     if (scores.length > 0) {
       const avg = (arr: number[]) => arr.reduce((s, v) => s + v, 0) / arr.length;
       setCompareResults({
-        version: "v9",
+        version: "v10",
         avgScore: avg(scores.map(s => s.overall_score)),
         taskRecall: avg(scores.map(s => s.task_recall)),
         decisionRecall: avg(scores.map(s => s.decision_recall)),
@@ -354,7 +354,7 @@ export default function BatchDashboard() {
                 <input ref={gsFileRef} type="file" accept=".json" multiple className="hidden" onChange={handleGsUpload} />
                 <Button variant="outline" size="sm" className="text-xs font-mono" onClick={handleCompareAll} disabled={compareRunning || goldStandards.length === 0}>
                   {compareRunning ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Play className="h-3 w-3 mr-1" />}
-                  Compare all (v9)
+                  Compare all (v10)
                 </Button>
               </div>
 

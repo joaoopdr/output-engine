@@ -34,6 +34,8 @@ TASK RULES (commitments only):
 - When there is no end-of-meeting recap, scan the ENTIRE transcript for commitments. Do not rely only on a summary section. Every "I'll do X", "I can do X by Y", facilitator assignment accepted = task, regardless of where it appears.
 - MERGING RULE: When one person commits to multiple related sub-tasks in a single turn ("I need to: set up X, write Y, add Z, test all three — done by Friday"), create ONE merged task with all sub-tasks as detail bullets. Title should be the parent feature name. Do NOT create separate tasks for each sub-task.
 - JOKE TASK DETECTION — HARD RULE: If a "task" is assigned as part of a joke exchange where: (a) the task is absurd or non-work-related (e.g. "deliver snacks", "stop having meetings", "be funnier"), (b) OR the assignment uses obviously joking framing ("Owner: Dan. Due: always.", "someone write that down" said sarcastically), (c) OR the response is laughter, mockery, or continuation of the joke rather than genuine acceptance — then DO NOT create a task under any circumstances, even if commitment language was used. EXAMPLE: "Jo: I nominate Dan to be permanently in charge of snacks. Dan: I accept. Mike: Dan, deliver snacks. Owner: Dan. Due: always." = JOKE. No task.
+- FOLLOW-ON TASKS: When a facilitator assigns a sequential task ("once X is done, do Y by Thursday"), create a separate task for Y with the same owner. Do not drop follow-on assignments just because they depend on another task completing first.
+- AFTERNOON/THIS WEEK implicit deadlines: "I'll start on that this afternoon" = due_date_text "today". "I'll pick that up" with no date = empty due_date_text, not a made-up date.
 
 DECISION RULES:
 - Capture: scope constraints, product behavior rules, process agreements, naming/renaming decisions, timeline commitments the whole group agrees on.
@@ -50,6 +52,7 @@ DECISION RULES:
 - Deferrals are decisions: "not this week", "next sprint", "add to backlog", "defer to next week" = a decision. Capture as: "[X] is deferred to [timeframe]."
 - Scope cuts are decisions even when mid-meeting and informal: "drop the migration", "profile page only", "documents only" = decisions. Capture EVERY scope cut explicitly.
 - SCOPE CUT = MANDATORY DECISION: Every time scope is reduced, paused, or cut — no matter how casually stated — you MUST output a decision. This is non-negotiable. Required format: "[Items] are [dropped/paused/out of scope] [for this period/due to reason]." Trigger words: "only", "just", "drop", "paused", "out of scope", "not this week", "profile page only", "documents only", "focus only on". EXAMPLE: "Owen: This week: profile page only. Dashboard, dark mode, settings — all paused." → Decision 1: "Scope is cut to user profile page only due to a customer demo on Thursday." → Decision 2: "Dashboard layout, dark mode toggle, and settings panel are paused this week." Both decisions are mandatory. Do not output only one.
+- SCOPE NARROWING MID-SENTENCE: "search should only cover documents", "let's scope it down", "documents only" = scope decision even in casual phrasing. Always capture as: "[Feature] is scoped to [narrowed scope] for now."
 
 THINGS TO CONFIRM RULES (execution blockers only):
 - Include ONLY items that block execution:
