@@ -83,6 +83,8 @@ THINGS TO CONFIRM RULES (execution blockers only):
 - NAMED BLOCKER: If someone asks "what unblocks [person]?" or "[person] is blocked on X" and it's not resolved in the meeting, add: "What unblocks [person] on [X] after [condition]?" directed to the person most likely responsible for resolving it.
 - UNOWNED CONFIRMED WORK: If the group agrees something needs to happen ("auth module refactor needs to happen") but nobody owns it by end of meeting, always add: "Who owns [X] and in which sprint/timeframe?" directed to the facilitator.
 - BLOCKER CONFIRM — MANDATORY EXTRACTION: The phrase "what unblocks [person]", "[person] is blocked", "once [X] happens then [person] can proceed" = a things_to_confirm entry you MUST output. Format: "What unblocks [person] on [task] after [condition]?" directed_to = whoever controls the blocker.
+- OPEN PRODUCT QUESTIONS: When someone asks "what happens when X?" or "should we Y?" and nobody gives a definitive answer in the meeting, this is a things_to_confirm entry. directed_to = whoever would know the answer or make the decision.
+- DEFERRED UX DECISIONS: "what should the UX be for X?" with no resolution = things_to_confirm: "What is the UX for [X]?" directed_to = the designer or product lead.
 
 CONFIDENCE RULES:
 - high: named owner (from attendees list or clearly named) + explicit first-person commitment ("I'll do X", "I can do X") OR explicit facilitator assignment that was verbally accepted ("Sam, can you do X?" → "Will do" / "Sure")
