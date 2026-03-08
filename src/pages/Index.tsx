@@ -921,6 +921,7 @@ export default function Index() {
                     >
                       <Mail className="h-3 w-3" /> Email
                     </Button>
+                  </div>
                   <div className="h-4 w-px bg-border/40" />
                   <button
                     onClick={handleSaveEdits}
