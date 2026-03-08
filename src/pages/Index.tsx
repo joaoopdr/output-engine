@@ -21,9 +21,9 @@ import {
   Save, AlertTriangle, Upload, Eraser, User, Calendar,
   LayoutGrid, HelpCircle, CheckCircle2, Shield, Eye,
   Sun, Moon, FileType, ChevronDown, ChevronRight, Check, AlertCircle,
+  Share2, ClipboardList, Handshake, Timer,
 } from "lucide-react";
 import { SharePanel } from "@/components/meeting/SharePanel";
-import { Share2 } from "lucide-react";
 import { TimePreferences, loadTimePrefs, type TimePrefs } from "@/components/meeting/TimePreferences";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -32,9 +32,7 @@ import {
 import {
   Collapsible, CollapsibleContent, CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const DEMO_TRANSCRIPT = `Alice: Alright everyone, let's go through this week's priorities.
 Bob: I'll finish the API integration by Wednesday. Already started yesterday.
@@ -64,6 +62,24 @@ Tom: One thing to flag — we haven't confirmed who owns UAT sign-off on the Mer
 James: Probably me, but let me confirm with our compliance officer. I'll come back to you by Monday.
 Tom: Works for us. I'll draft a project kickoff doc and share it with everyone by Thursday.
 Sarah: And I'll send the signed contract copy to Tom and Maya today.`;
+
+const DEMO_SPRINT_TRANSCRIPT = `Sarah (PM): Alright, sprint goal for this one is getting the checkout flow production-ready. That's our north star for the next two weeks.
+Dev (Tech Lead): Agreed. Let's go through the stories. First up — payment processing integration. Tom, that's yours?
+Tom: Yeah, I'll take it. Three points. Done means: card payments work end to end in staging, error states handled, and we have a unit test suite covering the main flows.
+Dev: Perfect. Next — order confirmation emails. Who's picking that up?
+Lisa: I'll do it. It's straightforward — two points. Done when confirmation email sends within 30 seconds of order, with correct order details and a working unsubscribe link.
+Dev: Good. Cart persistence across sessions — that's been on the backlog forever.
+Sarah: That's in for this sprint. It's blocking our return-user conversion rate.
+Tom: I can take that too. Five points — it's more complex than it looks. Needs to work across devices. Done when cart state survives browser close and login/logout.
+Dev: Shipping address validation — Lisa?
+Lisa: Yes, three points. Done when we validate format, flag invalid postcodes, and integrate with the address lookup API.
+Dev: One thing we haven't resolved — the discount code system. Sarah, is that in this sprint?
+Sarah: Not in scope. Next sprint. Too much scope risk.
+Dev: Agreed, pushing it. One dependency flag — Tom's cart persistence work needs the auth refactor to be merged first. Is that done?
+Tom: Should be merged by Monday. If not, I'll flag it.
+Dev: Let's add that as a confirm item. Also — mobile responsive pass for the whole checkout, is anyone owning that?
+Sarah: Nobody's committed to it yet. We should probably add it.
+Dev: Let's put it as unassigned for now and confirm in standup tomorrow.`;
 
 function wordCount(text: string): number {
   return text.trim() ? text.trim().split(/\s+/).length : 0;
@@ -196,8 +212,11 @@ export default function Index() {
   const [cmdOpen, setCmdOpen] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
   const [timePrefs, setTimePrefs] = useState<TimePrefs>(loadTimePrefs);
+  const [inputCollapsed, setInputCollapsed] = useState(false);
+  const isMobile = useIsMobile();
 
   const isHandoff = templateType === "customer_handoff";
+  const isSprint = templateType === "sprint_planning";
   const meetingDateInvalid = !meetingDate || !parseMeetingDate(meetingDate);
   const hasRelativeDates = transcript.match(/\b(tomorrow|tonight|today|end of week|friday|monday|next week|morning|evening)\b/i) && meetingDateInvalid;
   const wc = useMemo(() => wordCount(transcript), [transcript]);
@@ -393,21 +412,9 @@ export default function Index() {
         <header className="border-b border-border/60 px-5 py-2 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <ThemedLogo className="h-12 w-auto" />
-            <Select value={templateType} onValueChange={(v) => setTemplateType(v as TemplateType)}>
-              <SelectTrigger className="h-7 text-xs font-mono w-44 border-primary/30 bg-primary/10 text-center justify-center">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {TEMPLATE_OPTIONS.map(opt => (
-                  <SelectItem key={opt.value} value={opt.value} className="text-xs font-mono">
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
           <div className="flex items-center gap-1.5">
-            <Link to="/batch">
+            <Link to="/batch" className="hidden lg:inline-flex">
               <Button variant="ghost" size="sm" className="text-xs h-7 gap-1.5 text-muted-foreground hover:text-foreground">
                 <LayoutGrid className="h-3.5 w-3.5" /> Batch
               </Button>
@@ -433,10 +440,43 @@ export default function Index() {
           </div>
         </header>
 
-        <div className="flex" style={{ height: "calc(100vh - 41px)" }}>
+        <div className="flex flex-col lg:flex-row" style={{ height: "calc(100vh - 41px)" }}>
           {/* Left: Input Panel */}
-          <div className="w-[460px] border-r border-border/40 flex flex-col shrink-0 bg-background">
-            <div className="px-6 pt-6 pb-4 space-y-4 flex-1 flex flex-col overflow-auto custom-scrollbar">
+          <div className={`${isMobile ? 'w-full' : 'w-[460px]'} border-r border-border/40 flex flex-col shrink-0 bg-background ${isMobile && hasOutputs && inputCollapsed ? 'hidden' : ''}`}>
+            {isMobile && hasOutputs && (
+              <button
+                onClick={() => setInputCollapsed(!inputCollapsed)}
+                className="flex items-center justify-center gap-1.5 py-2 text-xs text-muted-foreground hover:text-foreground border-b border-border/40"
+              >
+                {inputCollapsed ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                {inputCollapsed ? "Show input" : "Hide input"}
+              </button>
+            )}
+            <div className="px-6 pt-4 pb-4 space-y-4 flex-1 flex flex-col overflow-auto custom-scrollbar">
+              {/* Meeting type cards */}
+              <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+                {([
+                  { value: "weekly_planning" as TemplateType, label: "Weekly Planning", icon: ClipboardList, emoji: "📋" },
+                  { value: "customer_handoff" as TemplateType, label: "Customer Handoff", icon: Handshake, emoji: "🤝" },
+                  { value: "sprint_planning" as TemplateType, label: "Sprint Planning", icon: Timer, emoji: "⚡" },
+                ]).map(opt => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setTemplateType(opt.value)}
+                    className={`flex-shrink-0 flex flex-col items-start gap-1 rounded-lg border px-3 py-2.5 w-[120px] transition-all text-left ${
+                      templateType === opt.value
+                        ? "border-primary bg-primary/5 shadow-sm"
+                        : "border-border/50 hover:border-border hover:bg-muted/30"
+                    }`}
+                  >
+                    <span className="text-lg">{opt.emoji}</span>
+                    <span className={`text-[11px] font-medium leading-tight ${
+                      templateType === opt.value ? "text-primary" : "text-muted-foreground"
+                    }`}>{opt.label}</span>
+                  </button>
+                ))}
+              </div>
+
               {/* Floating label inputs */}
               <div className="floating-label-group">
                 <input
@@ -500,7 +540,7 @@ export default function Index() {
                       variant="ghost"
                       size="sm"
                       className="text-[11px] h-6 px-2.5 text-muted-foreground hover:text-foreground"
-                      onClick={() => setTranscript(isHandoff ? DEMO_HANDOFF_TRANSCRIPT : DEMO_TRANSCRIPT)}
+                      onClick={() => setTranscript(isHandoff ? DEMO_HANDOFF_TRANSCRIPT : isSprint ? DEMO_SPRINT_TRANSCRIPT : DEMO_TRANSCRIPT)}
                     >
                       Example
                     </Button>
@@ -542,7 +582,9 @@ export default function Index() {
                 <p className="text-[11px] text-muted-foreground italic">
                   {isHandoff
                     ? "Extracts tasks (internal + customer), promises, and open items from handoff meetings."
-                    : "We avoid guessing owners or deadlines. Unclear items go to Things to confirm."}
+                    : isSprint
+                      ? "Extracts stories with points and acceptance criteria from sprint planning."
+                      : "We avoid guessing owners or deadlines. Unclear items go to Things to confirm."}
                 </p>
                 <div className="flex gap-2">
                   <button
@@ -584,7 +626,7 @@ export default function Index() {
           </div>
 
           {/* Subtle divider */}
-          <div className="w-px bg-border/30" />
+          <div className="w-px bg-border/30 hidden lg:block" />
 
           {/* Right: Outputs */}
           <div className="flex-1 flex flex-col overflow-hidden bg-background">

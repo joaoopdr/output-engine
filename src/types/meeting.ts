@@ -17,6 +17,8 @@ export interface MeetingTask {
   evidence: string[];
   notes: string;
   side?: "internal" | "customer";
+  story_points?: number;
+  acceptance_criteria?: string[];
 }
 
 export interface MeetingDecision {
@@ -82,9 +84,10 @@ export interface EditedOutput {
   created_at: string;
 }
 
-export type TemplateType = "weekly_planning" | "customer_handoff";
+export type TemplateType = "weekly_planning" | "customer_handoff" | "sprint_planning";
 
 export const TEMPLATE_OPTIONS: { value: TemplateType; label: string }[] = [
   { value: "weekly_planning", label: "Weekly Planning" },
   { value: "customer_handoff", label: "Customer Handoff" },
+  { value: "sprint_planning", label: "Sprint Planning" },
 ];

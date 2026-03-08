@@ -71,6 +71,8 @@ export function validateModelOutput(raw: string, meetingDateISO?: string): Valid
         evidence: Array.isArray(t.evidence) ? t.evidence.map(String) : [],
         notes: String(t.notes || ""),
         side: t.side === "customer" ? "customer" as const : "internal" as const,
+        story_points: typeof t.story_points === "number" ? t.story_points : undefined,
+        acceptance_criteria: Array.isArray(t.acceptance_criteria) ? t.acceptance_criteria.map(String) : undefined,
       };
     });
 

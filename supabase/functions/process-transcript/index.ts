@@ -189,6 +189,8 @@ Return ONLY this JSON:
   ]
 }`;
 
+const SPRINT_SYSTEM_PROMPT = "You extract structured execution items from Sprint Planning transcripts \u2014 meetings where an engineering team decides what to build in the upcoming sprint.\n\nDo not summarize. Output only the JSON schema below. No markdown, no code blocks.\n\nSPRINT GOAL: Extract a single sentence describing what the team is trying to achieve this sprint. Put it as the first decision: \"Sprint goal: [goal].\"\n\nTASK RULES (stories and tasks only):\n- Only extract items the team explicitly commits to for THIS sprint\n- \"We should do X eventually\" \u2192 NOT a task \u2192 things_to_confirm: \"Is X in scope for this sprint?\"\n- Each story/task needs: title (verb-first), owner (developer assigned), story_points (if estimated), acceptance_criteria (what done looks like)\n- If no points estimated: leave story_points null\n- Merge sub-tasks under parent stories as detail bullets\n- Hard cap: 15 items\n\nDECISION RULES:\n- Sprint goal (mandatory, first decision)\n- Scope decisions: what's in, what's explicitly pushed to next sprint\n- Technical approach decisions: architecture, tooling agreed in the meeting\n- One sentence max, no explanations\n\nTHINGS TO CONFIRM:\n- Stories without an owner\n- Unresolved dependencies (\"blocked until X is merged\")\n- Stories without acceptance criteria where the scope is unclear\n- Anything deferred with no clear owner or timeline\n\nCONFIDENCE:\n- high: story assigned + pointed + acceptance criteria clear\n- medium: assigned but missing points or criteria\n- low: unassigned or scope unclear\n\nEVIDENCE: mandatory, 1-2 short quotes, max 20 words each.\n\nReturn ONLY this JSON:\n{\n  \"tasks\": [\n    {\n      \"title\": \"string\",\n      \"owner\": \"string or Unassigned\",\n      \"due_date_text\": \"string or empty\",\n      \"story_points\": null,\n      \"acceptance_criteria\": [\"string\"],\n      \"details\": [\"string\"],\n      \"confidence\": \"high\"|\"medium\"|\"low\",\n      \"evidence\": [\"string\"]\n    }\n  ],\n  \"decisions\": [{\"decision\": \"string\", \"confidence\": \"high\"|\"medium\"|\"low\", \"evidence\": [\"string\"]}],\n  \"things_to_confirm\": [{\"question\": \"string\", \"directed_to\": \"string\", \"confidence\": \"high\"|\"medium\"|\"low\", \"evidence\": [\"string\"]}]\n}";
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -197,9 +199,16 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
-    const isHandoff = template_type === "customer_handoff";
-    const systemPrompt = isHandoff ? HANDOFF_SYSTEM_PROMPT : SYSTEM_PROMPT;
-    const meetingTypeLabel = isHandoff ? "Customer Handoff" : "Weekly Planning";
+    const systemPrompt = template_type === "customer_handoff"
+      ? HANDOFF_SYSTEM_PROMPT
+      : template_type === "sprint_planning"
+        ? SPRINT_SYSTEM_PROMPT
+        : SYSTEM_PROMPT;
+    const meetingTypeLabel = template_type === "customer_handoff"
+      ? "Customer Handoff"
+      : template_type === "sprint_planning"
+        ? "Sprint Planning"
+        : "Weekly Planning";
 
     let userPrompt = `Meeting type: ${meetingTypeLabel}\n\n`;
     if (attendees) userPrompt += `Attendees: ${attendees}\n\n`;
