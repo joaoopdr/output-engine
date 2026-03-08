@@ -132,6 +132,63 @@ Return ONLY this JSON object (no markdown, no code blocks):
   ]
 }`;
 
+const HANDOFF_SYSTEM_PROMPT = `You extract structured execution items from Customer Handoff transcripts — meetings where a sales or account team hands a new customer over to a delivery or implementation team.
+
+Do not summarize. Output only the JSON schema below. No markdown, no code blocks.
+
+CONTEXT EXTRACTION (mandatory):
+- customer_name: the customer company or person being handed off
+- customer_goal: their primary business objective in one sentence
+- success_criteria: 2-4 measurable outcomes defining success for the customer
+- constraints: timeline, budget, technical, or resource limits explicitly stated
+- key_stakeholders: everyone named in the meeting with role and side (internal/customer)
+
+TASK RULES — LABEL EVERY TASK AS internal OR customer:
+- internal: your team does it. Rules: explicit commitment, named owner, verb-first title. Same as Weekly Planning.
+- customer: the customer must provide, approve, or complete something.
+  * "We'll need SSO credentials from your IT team" → customer task, owner = "Customer IT"
+  * "Can you get sign-off from security?" → customer task
+  * If customer commits ("we can have that by Friday") → customer task, owner = customer person, confidence = high
+
+COMMITMENT RULES (same as Weekly Planning):
+- "we should" / "maybe" → NOT a task → things_to_confirm
+- Hedged = things_to_confirm. First-person volunteer OR assignment accepted = task.
+
+PROMISE TRACKING — capture in decisions[]:
+- Commitments made TO the customer: "We'll have staging ready by Thursday" → decision: "Delivery team commits to having staging environment ready by Thursday."
+- Scope agreements locked in this meeting (what is and isn't included)
+- Pricing, timeline, or SLA commitments made in this meeting
+
+THINGS TO CONFIRM:
+- Missing internal owner on a commitment
+- Customer hasn't confirmed they can provide something by a specific date
+- Dependency not yet resolved ("once legal approves...")
+- Unclear timeline when urgency exists
+- directed_to: the specific person or team responsible
+
+CONFIDENCE: high = named owner + explicit commitment. medium = clear intent, one gap. low = missing owner or hedged.
+EVIDENCE: mandatory, 1-2 short quotes max 20 words each.
+
+Return ONLY this JSON:
+{
+  "handoff_context": {
+    "customer_name": "string",
+    "customer_goal": "string",
+    "success_criteria": ["string"],
+    "constraints": ["string"],
+    "key_stakeholders": [{"name": "string", "role": "string", "side": "internal | customer"}]
+  },
+  "tasks": [
+    {"title": "string", "owner": "string", "side": "internal | customer", "due_date_text": "string", "details": ["string"], "confidence": "high|medium|low", "evidence": ["string"]}
+  ],
+  "decisions": [
+    {"decision": "string", "confidence": "high|medium|low", "evidence": ["string"]}
+  ],
+  "things_to_confirm": [
+    {"question": "string", "directed_to": "string", "confidence": "high|medium|low", "evidence": ["string"]}
+  ]
+}`;
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -140,7 +197,11 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
-    let userPrompt = `Meeting type: Weekly Planning\n\n`;
+    const isHandoff = template_type === "customer_handoff";
+    const systemPrompt = isHandoff ? HANDOFF_SYSTEM_PROMPT : SYSTEM_PROMPT;
+    const meetingTypeLabel = isHandoff ? "Customer Handoff" : "Weekly Planning";
+
+    let userPrompt = `Meeting type: ${meetingTypeLabel}\n\n`;
     if (attendees) userPrompt += `Attendees: ${attendees}\n\n`;
     if (meeting_date) userPrompt += `Meeting date: ${meeting_date}\n\n`;
     userPrompt += `REMINDERS:\n- If it's not a commitment, it's not a task\n- If it's not a blocker, it's not a thing_to_confirm\n- Evidence is mandatory for every item\n- One-line decisions only, no explanations\n\n`;
@@ -155,7 +216,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: "google/gemini-3-flash-preview",
         messages: [
-          { role: "system", content: SYSTEM_PROMPT },
+          { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
         ],
         temperature: 0,

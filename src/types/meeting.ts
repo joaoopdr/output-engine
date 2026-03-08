@@ -16,6 +16,7 @@ export interface MeetingTask {
   priority_reason: string;
   evidence: string[];
   notes: string;
+  side?: "internal" | "customer";
 }
 
 export interface MeetingDecision {
@@ -35,10 +36,19 @@ export interface MeetingQuestion {
   evidence: string[];
 }
 
+export interface HandoffContext {
+  customer_name: string;
+  customer_goal: string;
+  success_criteria: string[];
+  constraints: string[];
+  key_stakeholders: { name: string; role: string; side: "internal" | "customer" }[];
+}
+
 export interface ParsedOutput {
   tasks: MeetingTask[];
   decisions: MeetingDecision[];
   open_questions: MeetingQuestion[];
+  handoff_context?: HandoffContext;
 }
 
 export interface TranscriptCase {
@@ -72,8 +82,9 @@ export interface EditedOutput {
   created_at: string;
 }
 
-export type TemplateType = "weekly_planning";
+export type TemplateType = "weekly_planning" | "customer_handoff";
 
 export const TEMPLATE_OPTIONS: { value: TemplateType; label: string }[] = [
   { value: "weekly_planning", label: "Weekly Planning" },
+  { value: "customer_handoff", label: "Customer Handoff" },
 ];
