@@ -150,9 +150,11 @@ export function validateModelOutput(raw: string, meetingDateISO?: string): Valid
   if (decisions.some(d => !d.decision)) errors.push("Some decisions have empty statements");
   if (open_questions.some(q => !q.question)) errors.push("Some questions are empty");
 
+  const handoff_context: HandoffContext | undefined = parsed.handoff_context || undefined;
+
   return {
     valid: errors.length === 0,
-    output: { tasks, decisions, open_questions },
+    output: { tasks, decisions, open_questions, ...(handoff_context ? { handoff_context } : {}) },
     errors,
   };
 }
