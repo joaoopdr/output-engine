@@ -39,7 +39,7 @@ export function generateEmail(props: ShareProps): string {
   if (decisions.length > 0) {
     body += "DECISIONS\n";
     for (const d of decisions) {
-      body += `- ${d.text}\n`;
+      body += `- ${d.decision}\n`;
     }
     body += "\n";
   }
