@@ -469,7 +469,7 @@ export default function Index() {
 
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-background text-foreground">
+      <div className="h-screen overflow-hidden flex flex-col bg-background text-foreground">
         <CommandPalette open={cmdOpen} onOpenChange={setCmdOpen} onAction={handleCommand} />
 
         {/* Header */}
