@@ -212,8 +212,11 @@ export default function Index() {
   const [cmdOpen, setCmdOpen] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
   const [timePrefs, setTimePrefs] = useState<TimePrefs>(loadTimePrefs);
+  const [inputCollapsed, setInputCollapsed] = useState(false);
+  const isMobile = useIsMobile();
 
   const isHandoff = templateType === "customer_handoff";
+  const isSprint = templateType === "sprint_planning";
   const meetingDateInvalid = !meetingDate || !parseMeetingDate(meetingDate);
   const hasRelativeDates = transcript.match(/\b(tomorrow|tonight|today|end of week|friday|monday|next week|morning|evening)\b/i) && meetingDateInvalid;
   const wc = useMemo(() => wordCount(transcript), [transcript]);
