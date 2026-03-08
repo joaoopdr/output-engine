@@ -16,10 +16,16 @@ export interface ScoreResult {
   missed_confirms: string[];
 }
 
+const FILLER_WORDS = new Set(["hamburger"]);
+
 const STOP_WORDS = new Set(["the", "a", "and", "to", "in", "of", "is", "it", "we", "for", "that", "this", "on", "with", "be", "as", "at", "by", "an", "or", "not", "are", "was", "has", "have", "do", "does"]);
 
+const ABBREVIATIONS: Record<string, string> = {
+  "navigation": "nav",
+};
+
 const VERB_SYNONYMS: Record<string, string> = {
-  "deliver": "implement",
+  "deliver": "build",
   "complete": "implement",
   "finish": "implement",
   "create": "build",
@@ -37,10 +43,18 @@ const VERB_SYNONYMS: Record<string, string> = {
   "fix": "resolve",
   "resolve": "fix",
   "investigate": "fix",
+  "implement": "fix",
 };
 
 function normalizeWord(w: string): string {
-  return VERB_SYNONYMS[w] || w;
+  if (FILLER_WORDS.has(w)) return "";
+  const abbr = ABBREVIATIONS[w] || w;
+  return VERB_SYNONYMS[abbr] || abbr;
+}
+
+function depluralize(word: string): string {
+  if (word.length > 4 && word.endsWith("s") && !word.endsWith("ss")) return word.slice(0, -1);
+  return word;
 }
 
 function stem(word: string): string {
@@ -52,7 +66,12 @@ function stem(word: string): string {
 
 function tokenize(text: string, applyStemming = false): string[] {
   const words = text.toLowerCase().replace(/[^a-z0-9\s]/g, "").split(/\s+/).filter(w => w && !STOP_WORDS.has(w));
-  return applyStemming ? words.map(stem).map(normalizeWord) : words.map(normalizeWord);
+  const processed = words
+    .map(depluralize)
+    .map(w => applyStemming ? stem(w) : w)
+    .map(normalizeWord)
+    .filter(w => w.length > 0);
+  return processed;
 }
 
 function wordContainment(shorter: string[], longer: string[]): number {
@@ -153,10 +172,17 @@ export function scoreRun(
   const confirmRecall = expected.things_to_confirm.length > 0 ? confirmResult.matched.length / expected.things_to_confirm.length : 1;
   const confirmPrecision = actual.open_questions.length > 0 ? confirmResult.matched.length / actual.open_questions.length : 1;
 
-  const taskScore = (taskRecall + taskPrecision) / 2;
-  const decisionScore = (decisionRecall + decisionPrecision) / 2;
-  const confirmScore = (confirmRecall + confirmPrecision) / 2;
-  const overall = taskScore * 0.5 + decisionScore * 0.3 + confirmScore * 0.2;
+  const taskF1 = taskRecall + taskPrecision > 0
+    ? (2 * taskRecall * taskPrecision) / (taskRecall + taskPrecision)
+    : 0;
+  const decisionF1 = decisionRecall + decisionPrecision > 0
+    ? (2 * decisionRecall * decisionPrecision) / (decisionRecall + decisionPrecision)
+    : 0;
+  const confirmF1 = confirmRecall + confirmPrecision > 0
+    ? (2 * confirmRecall * confirmPrecision) / (confirmRecall + confirmPrecision)
+    : 0;
+
+  const overall = (taskF1 * 0.5) + (decisionF1 * 0.3) + (confirmF1 * 0.2);
 
   return {
     task_recall: taskRecall,
@@ -178,9 +204,8 @@ export function scoreRun(
 }
 
 export function formatScore(score: number): string {
-  const pct = Math.round(score * 100);
-  if (pct >= 90) return "A";
-  if (pct >= 80) return "B";
-  if (pct >= 70) return "C";
+  if (score >= 0.90) return "A";
+  if (score >= 0.80) return "B";
+  if (score >= 0.70) return "C";
   return "F";
 }
