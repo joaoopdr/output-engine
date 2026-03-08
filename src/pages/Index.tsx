@@ -582,7 +582,9 @@ export default function Index() {
                 <p className="text-[11px] text-muted-foreground italic">
                   {isHandoff
                     ? "Extracts tasks (internal + customer), promises, and open items from handoff meetings."
-                    : "We avoid guessing owners or deadlines. Unclear items go to Things to confirm."}
+                    : isSprint
+                      ? "Extracts stories with points and acceptance criteria from sprint planning."
+                      : "We avoid guessing owners or deadlines. Unclear items go to Things to confirm."}
                 </p>
                 <div className="flex gap-2">
                   <button
