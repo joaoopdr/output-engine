@@ -796,6 +796,8 @@ export default function Index() {
 
                 {/* Handoff context card */}
                 {isHandoff && handoffContext && <HandoffContextCard context={handoffContext} />}
+                {/* Sprint context card */}
+                {isSprint && sprintContext && <SprintContextCard context={sprintContext} />}
 
                 <Tabs defaultValue="tasks" className="flex-1 flex flex-col overflow-hidden">
                   <TabsList className="mx-4 mt-2 bg-transparent self-start border-0 border-b border-border/40 rounded-none p-0 gap-0">
