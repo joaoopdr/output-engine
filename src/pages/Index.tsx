@@ -288,7 +288,7 @@ const WHATS_NEW_ENTRIES = [
   { title: "Share tab", desc: "Generate follow-up emails and Slack messages from your outputs in one click." },
 ];
 
-
+export default function Index() {
   const [transcript, setTranscript] = useState("");
   const [title, setTitle] = useState("");
   const [attendees, setAttendees] = useState("");
