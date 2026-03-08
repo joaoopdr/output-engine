@@ -387,7 +387,7 @@ export default function Index() {
         {/* Header */}
         <header className="border-b border-border/60 px-5 py-2 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <ThemedLogo className="h-5 w-auto" />
+            <ThemedLogo className="h-12 w-auto" />
             <Select value={templateType} onValueChange={(v) => setTemplateType(v as TemplateType)}>
               <SelectTrigger className="h-7 text-xs font-mono w-44 border-primary/30 bg-primary/10 text-center justify-center">
                 <SelectValue />
