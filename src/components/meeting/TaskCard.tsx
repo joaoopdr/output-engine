@@ -239,6 +239,19 @@ export function TaskCard({
                   {(task.details || []).map((b, i) => <li key={i}>{b}</li>)}
                 </ul>
               )}
+              {task.acceptance_criteria && task.acceptance_criteria.length > 0 && (
+                <div className="mt-1.5">
+                  <p className="text-[11px] font-medium text-muted-foreground mb-0.5">Done when:</p>
+                  <ul className="space-y-0.5 text-xs text-muted-foreground">
+                    {task.acceptance_criteria.map((ac, i) => (
+                      <li key={i} className="flex items-start gap-1.5">
+                        <Check className="h-3 w-3 text-primary shrink-0 mt-0.5" />
+                        <span>{ac}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               {task.notes && <p className="text-xs text-muted-foreground">📝 {task.notes}</p>}
               {/* Extraction confidence — footnote style */}
               <p className="text-[10px] font-mono text-muted-foreground/60 mt-1">
