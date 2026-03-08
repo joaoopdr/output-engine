@@ -22,6 +22,7 @@ import {
   LayoutGrid, HelpCircle, CheckCircle2, Shield, Eye,
   Sun, Moon, FileType, ChevronDown, ChevronRight, Check, AlertCircle,
   Share2, ClipboardList, Handshake, Timer, Plug, Send, Mail,
+  History, Sparkles, X,
 } from "lucide-react";
 import { SharePanel } from "@/components/meeting/SharePanel";
 import { TimePreferences, loadTimePrefs, type TimePrefs } from "@/components/meeting/TimePreferences";
