@@ -70,6 +70,7 @@ export function validateModelOutput(raw: string, meetingDateISO?: string): Valid
         confidence: !isVerbFirst(title) && confidence === "high" ? "medium" as Confidence : confidence,
         evidence: Array.isArray(t.evidence) ? t.evidence.map(String) : [],
         notes: String(t.notes || ""),
+        side: t.side === "customer" ? "customer" as const : "internal" as const,
       };
     });
 
