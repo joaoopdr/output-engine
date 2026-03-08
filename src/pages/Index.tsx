@@ -419,6 +419,11 @@ export default function Index() {
                 <LayoutGrid className="h-3.5 w-3.5" /> Batch
               </Button>
             </Link>
+            <Link to="/integrations" className="hidden lg:inline-flex">
+              <Button variant="ghost" size="sm" className="text-xs h-7 gap-1.5 text-muted-foreground hover:text-foreground">
+                <Plug className="h-3.5 w-3.5" /> Integrations
+              </Button>
+            </Link>
             <ThemeToggle />
             <Tooltip>
               <TooltipTrigger asChild>
