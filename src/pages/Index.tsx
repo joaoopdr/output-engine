@@ -260,6 +260,7 @@ export default function Index() {
       setDecisions(result.output.decisions);
       setQuestions(result.output.open_questions);
       setHandoffContext(result.output.handoff_context || null);
+      setSprintContext(result.output.sprint_context || null);
       setIsDirty(false);
       setFilterSide("all");
     }
