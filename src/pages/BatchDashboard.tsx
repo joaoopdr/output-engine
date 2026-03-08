@@ -354,7 +354,7 @@ export default function BatchDashboard() {
                 <input ref={gsFileRef} type="file" accept=".json" multiple className="hidden" onChange={handleGsUpload} />
                 <Button variant="outline" size="sm" className="text-xs font-mono" onClick={handleCompareAll} disabled={compareRunning || goldStandards.length === 0}>
                   {compareRunning ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Play className="h-3 w-3 mr-1" />}
-                  Compare all (v9)
+                  Compare all (v10)
                 </Button>
               </div>
 
