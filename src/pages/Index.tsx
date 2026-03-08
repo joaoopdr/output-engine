@@ -512,6 +512,33 @@ export default function Index() {
     setEditNotes(""); setHeavyEdits(false); setIsDirty(false); setFilterSide("all");
   };
 
+  const handleRestoreHistory = (entry: HistoryEntry) => {
+    setTranscript(entry.transcript);
+    setTitle(entry.title === "Untitled" ? "" : entry.title);
+    setAttendees(entry.attendees);
+    setMeetingDate(entry.meeting_date);
+    setTemplateType(entry.template_type as TemplateType);
+    setTasks(entry.tasks);
+    setDecisions(entry.decisions);
+    setQuestions(entry.questions);
+    setHandoffContext(null);
+    setSprintContext(null);
+    setIsDirty(false);
+    setHistoryOpen(false);
+    toast.success(`Restored "${entry.title}"`);
+  };
+
+  const handleDeleteHistory = (id: string) => {
+    removeFromHistory(id);
+    setHistory(loadHistory());
+  };
+
+  const handleWhatsNewOpen = () => {
+    setWhatsNewSeen(true);
+    localStorage.setItem("briefs_whats_new_seen", "true");
+  };
+  };
+
   const handleEvidenceClick = useCallback((snippet: string) => {
     if (!transcriptRef.current) return;
     const text = transcriptRef.current.value;
