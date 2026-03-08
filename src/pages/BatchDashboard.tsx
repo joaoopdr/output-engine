@@ -261,7 +261,7 @@ export default function BatchDashboard() {
     <div className="min-h-screen bg-background text-foreground">
       <header className="border-b px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Link to="/">
+          <Link to="/app">
             <Button variant="ghost" size="icon" className="h-7 w-7"><ArrowLeft className="h-4 w-4" /></Button>
           </Link>
           <ThemedLogo className="h-5 w-auto" />

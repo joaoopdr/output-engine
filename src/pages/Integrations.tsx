@@ -60,7 +60,7 @@ export default function Integrations() {
     <div className="min-h-screen bg-background text-foreground">
       <header className="border-b border-border/60 px-5 py-2 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <Link to="/">
+          <Link to="/app">
             <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground">
               <ArrowLeft className="h-4 w-4" />
             </Button>
