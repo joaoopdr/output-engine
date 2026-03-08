@@ -22,6 +22,8 @@ import {
   LayoutGrid, HelpCircle, CheckCircle2, Shield, Eye,
   Sun, Moon, FileType, ChevronDown, ChevronRight, Check, AlertCircle,
 } from "lucide-react";
+import { SharePanel } from "@/components/meeting/SharePanel";
+import { Share2 } from "lucide-react";
 import { TimePreferences, loadTimePrefs, type TimePrefs } from "@/components/meeting/TimePreferences";
 import { Switch } from "@/components/ui/switch";
 import {
