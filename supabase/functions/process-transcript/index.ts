@@ -189,7 +189,60 @@ Return ONLY this JSON:
   ]
 }`;
 
-const SPRINT_SYSTEM_PROMPT = "You extract structured execution items from Sprint Planning transcripts \u2014 meetings where an engineering team decides what to build in the upcoming sprint.\n\nDo not summarize. Output only the JSON schema below. No markdown, no code blocks.\n\nSPRINT GOAL: Extract a single sentence describing what the team is trying to achieve this sprint. Put it as the first decision: \"Sprint goal: [goal].\"\n\nTASK RULES (stories and tasks only):\n- Only extract items the team explicitly commits to for THIS sprint\n- \"We should do X eventually\" \u2192 NOT a task \u2192 things_to_confirm: \"Is X in scope for this sprint?\"\n- Each story/task needs: title (verb-first), owner (developer assigned), story_points (if estimated), acceptance_criteria (what done looks like)\n- If no points estimated: leave story_points null\n- Merge sub-tasks under parent stories as detail bullets\n- Hard cap: 15 items\n\nDECISION RULES:\n- Sprint goal (mandatory, first decision)\n- Scope decisions: what's in, what's explicitly pushed to next sprint\n- Technical approach decisions: architecture, tooling agreed in the meeting\n- One sentence max, no explanations\n\nTHINGS TO CONFIRM:\n- Stories without an owner\n- Unresolved dependencies (\"blocked until X is merged\")\n- Stories without acceptance criteria where the scope is unclear\n- Anything deferred with no clear owner or timeline\n\nCONFIDENCE:\n- high: story assigned + pointed + acceptance criteria clear\n- medium: assigned but missing points or criteria\n- low: unassigned or scope unclear\n\nEVIDENCE: mandatory, 1-2 short quotes, max 20 words each.\n\nReturn ONLY this JSON:\n{\n  \"tasks\": [\n    {\n      \"title\": \"string\",\n      \"owner\": \"string or Unassigned\",\n      \"due_date_text\": \"string or empty\",\n      \"story_points\": null,\n      \"acceptance_criteria\": [\"string\"],\n      \"details\": [\"string\"],\n      \"confidence\": \"high\"|\"medium\"|\"low\",\n      \"evidence\": [\"string\"]\n    }\n  ],\n  \"decisions\": [{\"decision\": \"string\", \"confidence\": \"high\"|\"medium\"|\"low\", \"evidence\": [\"string\"]}],\n  \"things_to_confirm\": [{\"question\": \"string\", \"directed_to\": \"string\", \"confidence\": \"high\"|\"medium\"|\"low\", \"evidence\": [\"string\"]}]\n}";
+const SPRINT_SYSTEM_PROMPT = `You extract structured execution items from Sprint Planning transcripts — meetings where a development team plans work for an upcoming sprint.
+
+Do not summarize. Output only the JSON schema below. No markdown, no code blocks.
+
+SPRINT CONTEXT (mandatory if mentioned):
+- sprint_goal: the single sentence describing what this sprint achieves
+- sprint_number: sprint number or name if mentioned (empty string if not)
+- team_capacity: total story points or days available if mentioned (empty string if not)
+- definition_of_done: explicit quality/completion criteria agreed for this sprint
+
+TASK RULES — these are USER STORIES or TICKETS:
+- Each task represents one story or ticket committed to the sprint
+- Title format: verb-first feature description ("Implement password reset flow", "Build export to CSV")
+- owner: the developer or pair assigned
+- due_date_text: "end of sprint" if no specific date, or exact date if stated
+- details[]: acceptance criteria as bullet points — what "done" looks like for this story
+- story_points: number if estimated, null if not discussed
+- acceptance_criteria[]: what "done" looks like for this story
+- confidence: high = story accepted into sprint + assigned. medium = discussed but not formally committed. low = mentioned as stretch goal or uncertain
+
+DECISION RULES:
+- Sprint goal as first decision (mandatory): "Sprint goal: [goal]."
+- Scope decisions: what is IN the sprint vs explicitly pushed to backlog
+- Technical decisions: architecture choices, library decisions, approach agreed
+- Process decisions: team agreements about how work will be done this sprint
+- One sentence max, no explanations
+
+THINGS TO CONFIRM:
+- Stories without an assigned developer
+- Acceptance criteria that are vague or missing
+- Dependencies on other teams or external systems not yet confirmed
+- Stories that seem too large and may need splitting
+
+CONFIDENCE:
+- high: story assigned + pointed + acceptance criteria clear
+- medium: assigned but missing points or criteria
+- low: unassigned or scope unclear
+
+EVIDENCE: mandatory, 1-2 short quotes per item, max 20 words each.
+
+Return ONLY this JSON:
+{
+  "sprint_context": {
+    "sprint_goal": "string",
+    "sprint_number": "string or empty",
+    "team_capacity": "string or empty",
+    "definition_of_done": ["string"]
+  },
+  "tasks": [
+    {"title": "string", "owner": "string or Unassigned", "due_date_text": "string or empty", "story_points": null, "acceptance_criteria": ["string"], "details": ["string"], "confidence": "high"|"medium"|"low", "evidence": ["string"]}
+  ],
+  "decisions": [{"decision": "string", "confidence": "high"|"medium"|"low", "evidence": ["string"]}],
+  "things_to_confirm": [{"question": "string", "directed_to": "string", "confidence": "high"|"medium"|"low", "evidence": ["string"]}]
+}`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });

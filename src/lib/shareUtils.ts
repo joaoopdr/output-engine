@@ -11,7 +11,7 @@ interface ShareProps {
 }
 
 function meetingLabel(t: TemplateType) {
-  return t === "customer_handoff" ? "Customer Handoff" : "Weekly Planning";
+  return t === "customer_handoff" ? "Customer Handoff" : t === "sprint_planning" ? "Sprint Planning" : "Weekly Planning";
 }
 
 function subjectTitle(title: string) {

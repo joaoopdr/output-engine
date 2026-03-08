@@ -1,4 +1,4 @@
-import type { ParsedOutput, Confidence, Priority, MeetingTask, MeetingDecision, MeetingQuestion, HandoffContext } from "@/types/meeting";
+import type { ParsedOutput, Confidence, Priority, MeetingTask, MeetingDecision, MeetingQuestion, HandoffContext, SprintContext } from "@/types/meeting";
 import { resolveDate } from "@/lib/dateUtils";
 import { differenceInDays, parseISO } from "date-fns";
 
@@ -153,10 +153,15 @@ export function validateModelOutput(raw: string, meetingDateISO?: string): Valid
   if (open_questions.some(q => !q.question)) errors.push("Some questions are empty");
 
   const handoff_context: HandoffContext | undefined = parsed.handoff_context || undefined;
+  const sprint_context: SprintContext | undefined = parsed.sprint_context || undefined;
 
   return {
     valid: errors.length === 0,
-    output: { tasks, decisions, open_questions, ...(handoff_context ? { handoff_context } : {}) },
+    output: {
+      tasks, decisions, open_questions,
+      ...(handoff_context ? { handoff_context } : {}),
+      ...(sprint_context ? { sprint_context } : {}),
+    },
     errors,
   };
 }
