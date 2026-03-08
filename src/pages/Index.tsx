@@ -738,6 +738,17 @@ export default function Index() {
                         onEvidenceClick={handleEvidenceClick}
                       />
                     </TabsContent>
+                    <TabsContent value="share" className="mt-0">
+                      <SharePanel
+                        tasks={tasks}
+                        decisions={decisions}
+                        questions={questions}
+                        title={title}
+                        attendees={attendees}
+                        meetingDate={meetingDate}
+                        templateType={templateType}
+                      />
+                    </TabsContent>
                   </div>
                 </Tabs>
 
