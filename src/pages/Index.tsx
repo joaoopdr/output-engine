@@ -21,7 +21,7 @@ import {
   Save, AlertTriangle, Upload, Eraser, User, Calendar,
   LayoutGrid, HelpCircle, CheckCircle2, Shield, Eye,
   Sun, Moon, FileType, ChevronDown, ChevronRight, Check, AlertCircle,
-  Share2, ClipboardList, Handshake, Timer,
+  Share2, ClipboardList, Handshake, Timer, Plug, Send, Mail,
 } from "lucide-react";
 import { SharePanel } from "@/components/meeting/SharePanel";
 import { TimePreferences, loadTimePrefs, type TimePrefs } from "@/components/meeting/TimePreferences";
@@ -313,6 +313,70 @@ export default function Index() {
     download(exportAsPlainText(tasks, decisions, questions, title, meetingDate, attendees), `${title || "meeting-outputs"}.txt`, "text/plain");
   };
 
+  const teamsWebhookUrl = typeof window !== "undefined" ? localStorage.getItem("briefs_teams_webhook") || "" : "";
+
+  const handlePostToTeams = async () => {
+    if (!teamsWebhookUrl) return;
+    try {
+      const teamsPayload = {
+        "@type": "MessageCard",
+        "@context": "http://schema.org/extensions",
+        themeColor: "7C3AED",
+        summary: `Meeting outputs: ${title || "Untitled meeting"}`,
+        sections: [
+          {
+            activityTitle: `\ud83d\udccb ${title || "Meeting outputs"}`,
+            activitySubtitle: meetingDate || new Date().toLocaleDateString(),
+            facts: [
+              { name: "Tasks", value: `${tasks.length} items` },
+              { name: "Decisions", value: `${decisions.length} items` },
+              { name: "Things to confirm", value: `${questions.length} items` },
+            ],
+          },
+          {
+            title: "\u2705 Tasks",
+            text: tasks.map(t => `\u2022 **${t.owner}**: ${t.title}${t.due_date_text ? ` _(${t.due_date_text})_` : ""}`).join("\n") || "None",
+          },
+          {
+            title: "\ud83d\udd12 Decisions",
+            text: decisions.map(d => `\u2022 ${d.decision}`).join("\n") || "None",
+          },
+          {
+            title: "\u2753 Things to confirm",
+            text: questions.map(q => `\u2022 ${q.directed_to ? `**${q.directed_to}**: ` : ""}${q.question}`).join("\n") || "None",
+          },
+        ],
+      };
+      const resp = await fetch(teamsWebhookUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(teamsPayload),
+      });
+      if (resp.ok) {
+        toast.success("Posted to Teams \u2713");
+      } else {
+        toast.error("Failed to post to Teams \u2014 check your webhook URL in Integrations.");
+      }
+    } catch {
+      toast.error("Failed to post to Teams \u2014 check your webhook URL in Integrations.");
+    }
+  };
+
+  const handleSendEmail = () => {
+    const typeLabel = templateType === "customer_handoff" ? "customer handoff" : templateType === "sprint_planning" ? "sprint planning" : "weekly planning";
+    const subject = encodeURIComponent(`Meeting outputs: ${title || "Untitled meeting"}`);
+    const body = encodeURIComponent(
+      `Hi all,\n\nHere's a summary of our ${typeLabel} meeting${title ? ` \u2014 ${title}` : ""}.\n\n` +
+      `TASKS\n${tasks.map(t => `\u2022 [${t.owner}] ${t.title}${t.due_date_text ? ` \u2014 due ${t.due_date_text}` : ""}`).join("\n") || "None"}\n\n` +
+      `DECISIONS\n${decisions.map(d => `\u2022 ${d.decision}`).join("\n") || "None"}\n\n` +
+      `THINGS TO CONFIRM\n${questions.map(q => `\u2022 ${q.directed_to ? `[${q.directed_to}] ` : ""}${q.question}`).join("\n") || "None"}\n\n` +
+      `\u2014\nSent via BriefSync`
+    );
+    const toList = attendees ? encodeURIComponent(attendees) : "";
+    window.open(`mailto:${toList}?subject=${subject}&body=${body}`, "_blank");
+    toast.success("Opening email client...");
+  };
+
   const handleClear = () => {
     setTranscript(""); setTitle(""); setAttendees(""); setMeetingDate("");
     setTasks([]); setDecisions([]); setQuestions([]); setHandoffContext(null);
@@ -417,6 +481,11 @@ export default function Index() {
             <Link to="/batch" className="hidden lg:inline-flex">
               <Button variant="ghost" size="sm" className="text-xs h-7 gap-1.5 text-muted-foreground hover:text-foreground">
                 <LayoutGrid className="h-3.5 w-3.5" /> Batch
+              </Button>
+            </Link>
+            <Link to="/integrations" className="hidden lg:inline-flex">
+              <Button variant="ghost" size="sm" className="text-xs h-7 gap-1.5 text-muted-foreground hover:text-foreground">
+                <Plug className="h-3.5 w-3.5" /> Integrations
               </Button>
             </Link>
             <ThemeToggle />
@@ -822,6 +891,35 @@ export default function Index() {
                     </Button>
                     <Button onClick={handleExportJSON} variant="ghost" size="sm" className="text-xs h-7 gap-1 text-muted-foreground hover:text-foreground">
                       <FileJson className="h-3 w-3" /> JSON
+                    </Button>
+                  </div>
+                  <div className="h-4 w-px bg-border/40" />
+                  <div className="flex items-center gap-0.5 border border-border/40 rounded-md px-0.5">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          onClick={handlePostToTeams}
+                          disabled={!teamsWebhookUrl}
+                          variant="ghost"
+                          size="sm"
+                          className="text-xs h-7 gap-1 text-muted-foreground hover:text-foreground disabled:opacity-40"
+                        >
+                          <Send className="h-3 w-3" /> Teams
+                        </Button>
+                      </TooltipTrigger>
+                      {!teamsWebhookUrl && (
+                        <TooltipContent side="top" className="text-xs">
+                          Configure Teams in Integrations settings
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                    <Button
+                      onClick={handleSendEmail}
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs h-7 gap-1 text-muted-foreground hover:text-foreground"
+                    >
+                      <Mail className="h-3 w-3" /> Email
                     </Button>
                   </div>
                   <div className="h-4 w-px bg-border/40" />

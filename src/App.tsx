@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import BatchDashboard from "./pages/BatchDashboard";
+import Integrations from "./pages/Integrations";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -18,6 +19,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/batch" element={<BatchDashboard />} />
+          <Route path="/integrations" element={<Integrations />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
