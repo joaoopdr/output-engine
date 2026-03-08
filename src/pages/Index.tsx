@@ -22,6 +22,8 @@ import {
   LayoutGrid, HelpCircle, CheckCircle2, Shield, Eye,
   Sun, Moon, FileType, ChevronDown, ChevronRight, Check, AlertCircle,
 } from "lucide-react";
+import { SharePanel } from "@/components/meeting/SharePanel";
+import { Share2 } from "lucide-react";
 import { TimePreferences, loadTimePrefs, type TimePrefs } from "@/components/meeting/TimePreferences";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -641,6 +643,11 @@ export default function Index() {
                     <TabsTrigger value="confirm" className="text-xs gap-1.5 rounded-none border-b-2 border-transparent data-[state=active]:border-b-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground text-muted-foreground hover:text-foreground/70 px-4 pb-2.5 pt-1.5">
                       Things to confirm <span className="opacity-60">({questions.length})</span>
                     </TabsTrigger>
+                    {(tasks.length > 0 || decisions.length > 0) && (
+                      <TabsTrigger value="share" className="text-xs gap-1.5 rounded-none border-b-2 border-transparent data-[state=active]:border-b-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground text-muted-foreground hover:text-foreground/70 px-4 pb-2.5 pt-1.5">
+                        <Share2 className="h-3 w-3" /> Share
+                      </TabsTrigger>
+                    )}
                   </TabsList>
 
                   <div className="flex-1 overflow-auto p-4 custom-scrollbar">
@@ -729,6 +736,17 @@ export default function Index() {
                         onConvertToTask={convertConfirmToTask}
                         onConvertToDecision={convertConfirmToDecision}
                         onEvidenceClick={handleEvidenceClick}
+                      />
+                    </TabsContent>
+                    <TabsContent value="share" className="mt-0">
+                      <SharePanel
+                        tasks={tasks}
+                        decisions={decisions}
+                        questions={questions}
+                        title={title}
+                        attendees={attendees}
+                        meetingDate={meetingDate}
+                        templateType={templateType}
                       />
                     </TabsContent>
                   </div>
