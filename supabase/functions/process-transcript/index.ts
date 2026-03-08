@@ -56,6 +56,7 @@ DECISION RULES:
 - SCOPE DECISIONS MUST BE TOP-LEVEL: If a scope constraint is mentioned as part of a task ("Fix mobile nav — hamburger menu only, not the full nav"), extract the scope constraint as a SEPARATE decision: "Mobile nav fix is scoped to hamburger menu only." Do not bury scope constraints inside task detail bullets. They must appear in decisions[].
 - FEATURE SCOPE NARROWING: Any phrase like "only", "just", "limited to", "scoped to", "not the full X" attached to a feature or task = extract a standalone scope decision.
 - SCOPE DECISION — MANDATORY EXTRACTION: The phrase "only [X]", "limited to [X]", "[feature] is [X] only", "documents only", "search only covers X" = a decision you MUST output. No exceptions. Format: "[Feature] is limited to [scope] for now."
+- TECHNICAL STANDARD DECISIONS: When the team agrees on a technical standard or approach ("URL-based versioning", "v1/v2 prefix", "per-seat pricing", "session timeout of X hours"), this is a decision even if stated as a fact mid-conversation. Capture as: "[Standard] is [agreed value/approach]."
 
 THINGS TO CONFIRM RULES (execution blockers only):
 - Include ONLY items that block execution:
@@ -82,6 +83,8 @@ THINGS TO CONFIRM RULES (execution blockers only):
 - NAMED BLOCKER: If someone asks "what unblocks [person]?" or "[person] is blocked on X" and it's not resolved in the meeting, add: "What unblocks [person] on [X] after [condition]?" directed to the person most likely responsible for resolving it.
 - UNOWNED CONFIRMED WORK: If the group agrees something needs to happen ("auth module refactor needs to happen") but nobody owns it by end of meeting, always add: "Who owns [X] and in which sprint/timeframe?" directed to the facilitator.
 - BLOCKER CONFIRM — MANDATORY EXTRACTION: The phrase "what unblocks [person]", "[person] is blocked", "once [X] happens then [person] can proceed" = a things_to_confirm entry you MUST output. Format: "What unblocks [person] on [task] after [condition]?" directed_to = whoever controls the blocker.
+- OPEN PRODUCT QUESTIONS: When someone asks "what happens when X?" or "should we Y?" and nobody gives a definitive answer in the meeting, this is a things_to_confirm entry. directed_to = whoever would know the answer or make the decision.
+- DEFERRED UX DECISIONS: "what should the UX be for X?" with no resolution = things_to_confirm: "What is the UX for [X]?" directed_to = the designer or product lead.
 
 CONFIDENCE RULES:
 - high: named owner (from attendees list or clearly named) + explicit first-person commitment ("I'll do X", "I can do X") OR explicit facilitator assignment that was verbally accepted ("Sam, can you do X?" → "Will do" / "Sure")

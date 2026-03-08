@@ -191,6 +191,11 @@ export function scoreRun(
   const overall = (taskF1 * 0.5) + (decisionF1 * 0.3) + (confirmF1 * 0.2);
   // DO NOT modify overall_score after this point — hallucinations are display-only.
 
+  // Scoring sanity check
+  if (import.meta.env.DEV) {
+    console.log('[scorer] F1s:', taskF1, decisionF1, confirmF1, '→', overall);
+  }
+
   // INVARIANT: scoreCase({task_recall:1,task_precision:1,decision_recall:1,
   // decision_precision:1,confirm_recall:1,confirm_precision:1,hallucinations:0})
   // must return overall_score=1.0 and grade="A"
