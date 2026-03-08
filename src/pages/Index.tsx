@@ -469,7 +469,7 @@ export default function Index() {
 
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-background text-foreground">
+      <div className="h-screen overflow-hidden flex flex-col bg-background text-foreground">
         <CommandPalette open={cmdOpen} onOpenChange={setCmdOpen} onAction={handleCommand} />
 
         {/* Header */}
@@ -488,6 +488,12 @@ export default function Index() {
                 <Plug className="h-3.5 w-3.5" /> Integrations
               </Button>
             </Link>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <TimePreferences onChange={setTimePrefs} />
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-xs">Time preferences</TooltipContent>
+            </Tooltip>
             <ThemeToggle />
             <Tooltip>
               <TooltipTrigger asChild>
@@ -509,9 +515,9 @@ export default function Index() {
           </div>
         </header>
 
-        <div className="flex flex-col lg:flex-row" style={{ height: "calc(100vh - 41px)" }}>
+        <div className="flex-1 overflow-hidden flex flex-col lg:flex-row">
           {/* Left: Input Panel */}
-          <div className={`${isMobile ? 'w-full' : 'w-[460px]'} border-r border-border/40 flex flex-col shrink-0 bg-background ${isMobile && hasOutputs && inputCollapsed ? 'hidden' : ''}`}>
+          <div className={`${isMobile ? 'w-full' : 'w-[460px]'} border-r border-border/40 flex flex-col shrink-0 bg-background overflow-hidden ${isMobile && hasOutputs && inputCollapsed ? 'hidden' : ''}`}>
             {isMobile && hasOutputs && (
               <button
                 onClick={() => setInputCollapsed(!inputCollapsed)}
@@ -521,7 +527,7 @@ export default function Index() {
                 {inputCollapsed ? "Show input" : "Hide input"}
               </button>
             )}
-            <div className="px-6 pt-4 pb-4 space-y-4 flex-1 flex flex-col overflow-auto custom-scrollbar">
+            <div className="px-6 pt-4 pb-4 space-y-2 flex-1 flex flex-col overflow-hidden">
               {/* Meeting type cards */}
               <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
                 {([
@@ -573,25 +579,22 @@ export default function Index() {
               </div>
 
               <div>
-                <div className="flex items-center gap-1.5">
-                  <div className="floating-label-group relative flex-1">
-                    <input
-                      id="date-input"
-                      value={meetingDate}
-                      onChange={e => setMeetingDate(e.target.value)}
-                      placeholder=" "
-                      className="h-[52px] pr-16"
-                    />
-                    <label htmlFor="date-input">Meeting date</label>
-                    <button
-                      type="button"
-                      onClick={() => setMeetingDate(format(new Date(), "dd/MM/yyyy"))}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-medium px-2 py-1 rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
-                    >
-                      Today
-                    </button>
-                  </div>
-                  <TimePreferences onChange={setTimePrefs} />
+                <div className="floating-label-group relative">
+                  <input
+                    id="date-input"
+                    value={meetingDate}
+                    onChange={e => setMeetingDate(e.target.value)}
+                    placeholder=" "
+                    className="h-[52px] pr-16"
+                  />
+                  <label htmlFor="date-input">Meeting date</label>
+                  <button
+                    type="button"
+                    onClick={() => setMeetingDate(format(new Date(), "dd/MM/yyyy"))}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-medium px-2 py-1 rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                  >
+                    Today
+                  </button>
                 </div>
                 {meetingDatePreview ? (
                   <p className="text-[11px] text-primary mt-1 ml-1">→ {meetingDatePreview}</p>
@@ -624,13 +627,13 @@ export default function Index() {
                   </div>
                   <input ref={fileInputRef} type="file" accept=".txt" className="hidden" onChange={handleFileUpload} />
                 </div>
-                <div className="relative flex-1 min-h-[240px]">
+                <div className="relative flex-1 min-h-0">
                   <textarea
                     ref={transcriptRef}
                     value={transcript}
                     onChange={e => setTranscript(e.target.value)}
                     placeholder={"Paste your meeting transcript here...\nOr load an example →"}
-                    className="transcript-textarea w-full h-full rounded-lg border border-input bg-transparent px-3.5 py-3 text-sm resize-none transition-colors placeholder:text-muted-foreground/60"
+                    className="transcript-textarea w-full h-full rounded-lg border border-input bg-transparent px-3.5 py-3 text-sm resize-none overflow-y-auto transition-colors placeholder:text-muted-foreground/60"
                   />
                   {/* Evidence highlight overlay */}
                   <div
