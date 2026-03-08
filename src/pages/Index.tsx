@@ -412,21 +412,9 @@ export default function Index() {
         <header className="border-b border-border/60 px-5 py-2 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <ThemedLogo className="h-12 w-auto" />
-            <Select value={templateType} onValueChange={(v) => setTemplateType(v as TemplateType)}>
-              <SelectTrigger className="h-7 text-xs font-mono w-44 border-primary/30 bg-primary/10 text-center justify-center">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {TEMPLATE_OPTIONS.map(opt => (
-                  <SelectItem key={opt.value} value={opt.value} className="text-xs font-mono">
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
           <div className="flex items-center gap-1.5">
-            <Link to="/batch">
+            <Link to="/batch" className="hidden lg:inline-flex">
               <Button variant="ghost" size="sm" className="text-xs h-7 gap-1.5 text-muted-foreground hover:text-foreground">
                 <LayoutGrid className="h-3.5 w-3.5" /> Batch
               </Button>
@@ -452,10 +440,43 @@ export default function Index() {
           </div>
         </header>
 
-        <div className="flex" style={{ height: "calc(100vh - 41px)" }}>
+        <div className="flex flex-col lg:flex-row" style={{ height: "calc(100vh - 41px)" }}>
           {/* Left: Input Panel */}
-          <div className="w-[460px] border-r border-border/40 flex flex-col shrink-0 bg-background">
-            <div className="px-6 pt-6 pb-4 space-y-4 flex-1 flex flex-col overflow-auto custom-scrollbar">
+          <div className={`${isMobile ? 'w-full' : 'w-[460px]'} border-r border-border/40 flex flex-col shrink-0 bg-background ${isMobile && hasOutputs && inputCollapsed ? 'hidden' : ''}`}>
+            {isMobile && hasOutputs && (
+              <button
+                onClick={() => setInputCollapsed(!inputCollapsed)}
+                className="flex items-center justify-center gap-1.5 py-2 text-xs text-muted-foreground hover:text-foreground border-b border-border/40"
+              >
+                {inputCollapsed ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                {inputCollapsed ? "Show input" : "Hide input"}
+              </button>
+            )}
+            <div className="px-6 pt-4 pb-4 space-y-4 flex-1 flex flex-col overflow-auto custom-scrollbar">
+              {/* Meeting type cards */}
+              <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+                {([
+                  { value: "weekly_planning" as TemplateType, label: "Weekly Planning", icon: ClipboardList, emoji: "📋" },
+                  { value: "customer_handoff" as TemplateType, label: "Customer Handoff", icon: Handshake, emoji: "🤝" },
+                  { value: "sprint_planning" as TemplateType, label: "Sprint Planning", icon: Timer, emoji: "⚡" },
+                ]).map(opt => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setTemplateType(opt.value)}
+                    className={`flex-shrink-0 flex flex-col items-start gap-1 rounded-lg border px-3 py-2.5 w-[120px] transition-all text-left ${
+                      templateType === opt.value
+                        ? "border-primary bg-primary/5 shadow-sm"
+                        : "border-border/50 hover:border-border hover:bg-muted/30"
+                    }`}
+                  >
+                    <span className="text-lg">{opt.emoji}</span>
+                    <span className={`text-[11px] font-medium leading-tight ${
+                      templateType === opt.value ? "text-primary" : "text-muted-foreground"
+                    }`}>{opt.label}</span>
+                  </button>
+                ))}
+              </div>
+
               {/* Floating label inputs */}
               <div className="floating-label-group">
                 <input
