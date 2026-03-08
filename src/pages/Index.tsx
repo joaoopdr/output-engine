@@ -517,7 +517,7 @@ export default function Index() {
 
         <div className="flex-1 overflow-hidden flex flex-col lg:flex-row">
           {/* Left: Input Panel */}
-          <div className={`${isMobile ? 'w-full' : 'w-[460px]'} border-r border-border/40 flex flex-col shrink-0 bg-background ${isMobile && hasOutputs && inputCollapsed ? 'hidden' : ''}`}>
+          <div className={`${isMobile ? 'w-full' : 'w-[460px]'} border-r border-border/40 flex flex-col shrink-0 bg-background overflow-hidden ${isMobile && hasOutputs && inputCollapsed ? 'hidden' : ''}`}>
             {isMobile && hasOutputs && (
               <button
                 onClick={() => setInputCollapsed(!inputCollapsed)}
@@ -527,7 +527,7 @@ export default function Index() {
                 {inputCollapsed ? "Show input" : "Hide input"}
               </button>
             )}
-            <div className="px-6 pt-4 pb-4 space-y-4 flex-1 flex flex-col overflow-auto custom-scrollbar">
+            <div className="px-6 pt-4 pb-4 space-y-2 flex-1 flex flex-col overflow-hidden">
               {/* Meeting type cards */}
               <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
                 {([
