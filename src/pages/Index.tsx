@@ -173,6 +173,59 @@ function HandoffContextCard({ context }: { context: HandoffContext }) {
   );
 }
 
+function SprintContextCard({ context }: { context: SprintContext }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Collapsible open={open} onOpenChange={setOpen} className="mx-4 mt-3 rounded-lg border border-border/60 bg-muted/30">
+      <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 text-left">
+        <div className="min-w-0">
+          <h3 className="text-sm font-semibold text-foreground truncate">
+            {context.sprint_number ? `Sprint ${context.sprint_number}` : "Sprint"} — {context.sprint_goal}
+          </h3>
+          {context.team_capacity && (
+            <p className="text-xs text-muted-foreground">Capacity: {context.team_capacity}</p>
+          )}
+        </div>
+        {open ? <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />}
+      </CollapsibleTrigger>
+      <CollapsibleContent>
+        <div className="px-4 pb-4 space-y-3 border-t border-border/40 pt-3">
+          <div>
+            <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Sprint Goal</span>
+            <p className="text-sm font-medium text-foreground mt-1">{context.sprint_goal}</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {context.sprint_number && (
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                Sprint {context.sprint_number}
+              </span>
+            )}
+            {context.team_capacity && (
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border/50">
+                {context.team_capacity} capacity
+              </span>
+            )}
+          </div>
+          {context.definition_of_done.length > 0 && (
+            <div>
+              <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Definition of Done</span>
+              <ul className="mt-1 space-y-1">
+                {context.definition_of_done.map((d, i) => (
+                  <li key={i} className="flex items-start gap-1.5 text-xs text-foreground">
+                    <Check className="h-3 w-3 mt-0.5 shrink-0 text-[hsl(var(--confidence-high))]" />
+                    {d}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
 function SideBadge({ side }: { side: "internal" | "customer" }) {
   return side === "customer" ? (
     <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
