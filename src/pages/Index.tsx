@@ -201,6 +201,7 @@ export default function Index() {
   const [decisions, setDecisions] = useState<MeetingDecision[]>([]);
   const [questions, setQuestions] = useState<MeetingQuestion[]>([]);
   const [handoffContext, setHandoffContext] = useState<HandoffContext | null>(null);
+  const [sprintContext, setSprintContext] = useState<SprintContext | null>(null);
   const [editNotes, setEditNotes] = useState("");
   const [heavyEdits, setHeavyEdits] = useState(false);
   const [savedRecently, setSavedRecently] = useState(false);
