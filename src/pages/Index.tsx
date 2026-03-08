@@ -626,7 +626,7 @@ export default function Index() {
           </div>
 
           {/* Subtle divider */}
-          <div className="w-px bg-border/30" />
+          <div className="w-px bg-border/30 hidden lg:block" />
 
           {/* Right: Outputs */}
           <div className="flex-1 flex flex-col overflow-hidden bg-background">
