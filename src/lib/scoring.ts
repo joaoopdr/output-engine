@@ -177,17 +177,28 @@ export function scoreRun(
     ? (2 * taskRecall * taskPrecision) / (taskRecall + taskPrecision)
     : 1.0; // if no expected AND no actual = perfect
 
+  // Decision F1
   const decisionF1 = (decisionRecall + decisionPrecision) > 0
     ? (2 * decisionRecall * decisionPrecision) / (decisionRecall + decisionPrecision)
     : 1.0;
 
+  // Confirm F1
   const confirmF1 = (confirmRecall + confirmPrecision) > 0
     ? (2 * confirmRecall * confirmPrecision) / (confirmRecall + confirmPrecision)
     : 1.0;
 
-  // Weighted overall — hallucinations never affect this number
+  // Weighted overall — hallucinations NEVER affect this number
   const overall = (taskF1 * 0.5) + (decisionF1 * 0.3) + (confirmF1 * 0.2);
   // DO NOT modify overall_score after this point — hallucinations are display-only.
+
+  // INVARIANT: scoreCase({task_recall:1,task_precision:1,decision_recall:1,
+  // decision_precision:1,confirm_recall:1,confirm_precision:1,hallucinations:0})
+  // must return overall_score=1.0 and grade="A"
+  if (taskRecall === 1 && taskPrecision === 1 && decisionRecall === 1 &&
+      decisionPrecision === 1 && confirmRecall === 1 && confirmPrecision === 1 &&
+      taskResult.hallucinated.length === 0 && overall !== 1.0) {
+    console.error("SCORING INVARIANT VIOLATED: perfect inputs produced overall_score=" + overall + " instead of 1.0");
+  }
 
   return {
     task_recall: taskRecall,
