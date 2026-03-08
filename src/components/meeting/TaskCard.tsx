@@ -111,6 +111,13 @@ export function TaskCard({
             </DropdownMenuContent>
           </DropdownMenu>
 
+          {/* Story points badge */}
+          {task.story_points != null && (
+            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground border border-border/50 shrink-0">
+              {task.story_points} pts
+            </span>
+          )}
+
           {/* Date pill with evidence */}
           <DatePill
             dateText={task.due_date_text}
