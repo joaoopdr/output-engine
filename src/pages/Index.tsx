@@ -540,7 +540,7 @@ export default function Index() {
                       variant="ghost"
                       size="sm"
                       className="text-[11px] h-6 px-2.5 text-muted-foreground hover:text-foreground"
-                      onClick={() => setTranscript(isHandoff ? DEMO_HANDOFF_TRANSCRIPT : DEMO_TRANSCRIPT)}
+                      onClick={() => setTranscript(isHandoff ? DEMO_HANDOFF_TRANSCRIPT : isSprint ? DEMO_SPRINT_TRANSCRIPT : DEMO_TRANSCRIPT)}
                     >
                       Example
                     </Button>
