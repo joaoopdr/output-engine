@@ -14,18 +14,22 @@ import { exportAsMarkdown, exportAsJSON, exportAsPlainText } from "@/lib/export"
 import { parseMeetingDate } from "@/lib/dateUtils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import type { MeetingTask, MeetingDecision, MeetingQuestion } from "@/types/meeting";
+import type { MeetingTask, MeetingDecision, MeetingQuestion, TemplateType, HandoffContext } from "@/types/meeting";
+import { TEMPLATE_OPTIONS } from "@/types/meeting";
 import {
   Zap, Copy, FileJson, FileText, Loader2,
   Save, AlertTriangle, Upload, Eraser, User, Calendar,
   LayoutGrid, HelpCircle, CheckCircle2, Shield, Eye,
-  Sun, Moon, FileType,
+  Sun, Moon, FileType, ChevronDown, ChevronRight, Check, AlertCircle,
 } from "lucide-react";
 import { TimePreferences, loadTimePrefs, type TimePrefs } from "@/components/meeting/TimePreferences";
 import { Switch } from "@/components/ui/switch";
 import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Collapsible, CollapsibleContent, CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 const DEMO_TRANSCRIPT = `Alice: Alright everyone, let's go through this week's priorities.
 Bob: I'll finish the API integration by Wednesday. Already started yesterday.
@@ -38,6 +42,23 @@ Sam: Will do.
 Alice: One more thing - we should probably think about the onboarding flow soon.
 Charlie: Yeah, maybe next sprint. Not urgent.
 Alice: Agreed. Let's revisit onboarding next week. For now, focus on web dashboard.`;
+
+const DEMO_HANDOFF_TRANSCRIPT = `Sarah (AE): Alright everyone — I'm handing Meridian Health over to our delivery team. Tom, you'll be the lead on implementation.
+Tom (Delivery Lead): Got it. Meridian, can you give us a quick overview of what you're hoping to get out of this?
+James (Meridian CTO): Sure. We need to replace our patient scheduling system before Q3. The old one causes about 40 missed appointments a day. We go live July 1st — that's fixed, not flexible.
+Tom: Understood. July 1st is locked. Sarah, what was agreed on scope?
+Sarah: Phase 1 is scheduling and reminders only. Patient portal integration is Phase 2, out of scope for now.
+Tom: Perfect. I'll set up the staging environment by end of this week.
+James: We'll need your staging environment to meet our HIPAA compliance requirements. I'll get you our security checklist by Wednesday.
+Tom: Great. Once we have that I can start environment config. I'll need SSO credentials from your IT team as well — can you get those to us?
+James: Lisa from our IT team is on this call. Lisa, can you handle that?
+Lisa (Meridian IT): Yes, I can have SSO credentials ready by Friday.
+Tom: Perfect. I'll assign Maya to handle the data migration planning — she'll reach out to you directly, James.
+Sarah: Pricing is locked at the contracted rate. No changes.
+Tom: One thing to flag — we haven't confirmed who owns UAT sign-off on the Meridian side. James, is that you?
+James: Probably me, but let me confirm with our compliance officer. I'll come back to you by Monday.
+Tom: Works for us. I'll draft a project kickoff doc and share it with everyone by Thursday.
+Sarah: And I'll send the signed contract copy to Tom and Maya today.`;
 
 function wordCount(text: string): number {
   return text.trim() ? text.trim().split(/\s+/).length : 0;
@@ -66,11 +87,89 @@ function ThemeToggle() {
   );
 }
 
+function HandoffContextCard({ context }: { context: HandoffContext }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Collapsible open={open} onOpenChange={setOpen} className="mx-4 mt-3 rounded-lg border border-border/60 bg-muted/30">
+      <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 text-left">
+        <div className="min-w-0">
+          <h3 className="text-sm font-semibold text-foreground truncate">{context.customer_name}</h3>
+          <p className="text-xs text-muted-foreground truncate">{context.customer_goal}</p>
+        </div>
+        {open ? <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />}
+      </CollapsibleTrigger>
+      <CollapsibleContent>
+        <div className="px-4 pb-4 space-y-3 border-t border-border/40 pt-3">
+          {context.success_criteria.length > 0 && (
+            <div>
+              <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Success Criteria</span>
+              <ul className="mt-1 space-y-1">
+                {context.success_criteria.map((c, i) => (
+                  <li key={i} className="flex items-start gap-1.5 text-xs text-foreground">
+                    <Check className="h-3 w-3 mt-0.5 shrink-0 text-[hsl(var(--confidence-high))]" />
+                    {c}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {context.constraints.length > 0 && (
+            <div>
+              <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Constraints</span>
+              <ul className="mt-1 space-y-1">
+                {context.constraints.map((c, i) => (
+                  <li key={i} className="flex items-start gap-1.5 text-xs text-foreground">
+                    <AlertCircle className="h-3 w-3 mt-0.5 shrink-0 text-[hsl(var(--confidence-medium))]" />
+                    {c}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {context.key_stakeholders.length > 0 && (
+            <div>
+              <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Key Stakeholders</span>
+              <div className="mt-1.5 flex flex-wrap gap-1.5">
+                {context.key_stakeholders.map((s, i) => (
+                  <span
+                    key={i}
+                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium border ${
+                      s.side === "customer"
+                        ? "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20"
+                        : "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20"
+                    }`}
+                  >
+                    {s.name} <span className="opacity-60">· {s.role}</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
+function SideBadge({ side }: { side: "internal" | "customer" }) {
+  return side === "customer" ? (
+    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
+      Customer
+    </span>
+  ) : (
+    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+      Internal
+    </span>
+  );
+}
+
 export default function Index() {
   const [transcript, setTranscript] = useState("");
   const [title, setTitle] = useState("");
   const [attendees, setAttendees] = useState("");
   const [meetingDate, setMeetingDate] = useState("");
+  const [templateType, setTemplateType] = useState<TemplateType>("weekly_planning");
   const { process, isProcessing, currentRun } = useMeetingProcessor();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const transcriptRef = useRef<HTMLTextAreaElement>(null);
@@ -80,22 +179,28 @@ export default function Index() {
   const [tasks, setTasks] = useState<MeetingTask[]>([]);
   const [decisions, setDecisions] = useState<MeetingDecision[]>([]);
   const [questions, setQuestions] = useState<MeetingQuestion[]>([]);
+  const [handoffContext, setHandoffContext] = useState<HandoffContext | null>(null);
   const [editNotes, setEditNotes] = useState("");
   const [heavyEdits, setHeavyEdits] = useState(false);
   const [savedRecently, setSavedRecently] = useState(false);
   const [filterLow, setFilterLow] = useState(false);
   const [filterOwner, setFilterOwner] = useState<string | null>(null);
   const [filterDate, setFilterDate] = useState<string | null>(null);
+  const [filterSide, setFilterSide] = useState<"all" | "internal" | "customer">("all");
   const [viewMode, setViewMode] = useState<"clean" | "review">("clean");
   const [cmdOpen, setCmdOpen] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
   const [timePrefs, setTimePrefs] = useState<TimePrefs>(loadTimePrefs);
 
+  const isHandoff = templateType === "customer_handoff";
   const meetingDateInvalid = !meetingDate || !parseMeetingDate(meetingDate);
   const hasRelativeDates = transcript.match(/\b(tomorrow|tonight|today|end of week|friday|monday|next week|morning|evening)\b/i) && meetingDateInvalid;
   const wc = useMemo(() => wordCount(transcript), [transcript]);
   const resolvedMeetingDate = useMemo(() => parseMeetingDate(meetingDate), [meetingDate]);
   const meetingDatePreview = resolvedMeetingDate ? format(resolvedMeetingDate, "EEEE, d MMM yyyy") : null;
+
+  const internalCount = tasks.filter(t => t.side !== "customer").length;
+  const customerCount = tasks.filter(t => t.side === "customer").length;
 
   useEffect(() => {
     if (tasks.length > 0 || decisions.length > 0 || questions.length > 0) setIsDirty(true);
@@ -114,7 +219,7 @@ export default function Index() {
 
   const handleGenerate = async () => {
     if (!transcript.trim()) { toast.error("Paste a transcript first"); return; }
-    if (hasRelativeDates) {
+    if (hasRelativeDates && !isHandoff) {
       toast.warning("Relative dates detected", {
         description: "This transcript contains words like 'tomorrow' or 'tonight'. Add a meeting date so deadlines resolve correctly.",
         duration: 8000,
@@ -123,13 +228,15 @@ export default function Index() {
     }
     const result = await process({
       transcript_text: transcript, title, attendees,
-      template_type: "weekly_planning", meeting_date: meetingDate,
+      template_type: templateType, meeting_date: meetingDate,
     });
     if (result?.output) {
       setTasks(result.output.tasks);
       setDecisions(result.output.decisions);
       setQuestions(result.output.open_questions);
+      setHandoffContext(result.output.handoff_context || null);
       setIsDirty(false);
+      setFilterSide("all");
     }
   };
 
@@ -184,8 +291,8 @@ export default function Index() {
 
   const handleClear = () => {
     setTranscript(""); setTitle(""); setAttendees(""); setMeetingDate("");
-    setTasks([]); setDecisions([]); setQuestions([]);
-    setEditNotes(""); setHeavyEdits(false); setIsDirty(false);
+    setTasks([]); setDecisions([]); setQuestions([]); setHandoffContext(null);
+    setEditNotes(""); setHeavyEdits(false); setIsDirty(false); setFilterSide("all");
   };
 
   const handleEvidenceClick = useCallback((snippet: string) => {
@@ -198,7 +305,6 @@ export default function Index() {
       const scrollRatio = idx / text.length;
       transcriptRef.current.scrollTop = transcriptRef.current.scrollHeight * scrollRatio;
 
-      // Flash highlight overlay
       if (highlightRef.current) {
         const el = highlightRef.current;
         const top = scrollRatio * transcriptRef.current.scrollHeight - transcriptRef.current.scrollTop;
@@ -266,6 +372,13 @@ export default function Index() {
   const lowConfidenceCount = [...tasks, ...decisions, ...questions].filter(i => i.confidence === "low").length;
   const hasOutputs = tasks.length > 0 || decisions.length > 0 || questions.length > 0;
 
+  // Filter tasks by side for handoff
+  const displayTasks = isHandoff && filterSide !== "all"
+    ? tasks.filter(t => filterSide === "customer" ? t.side === "customer" : t.side !== "customer")
+    : tasks;
+
+  const templateLabel = TEMPLATE_OPTIONS.find(o => o.value === templateType)?.label || "Weekly Planning";
+
   return (
     <TooltipProvider>
       <div className="min-h-screen bg-background text-foreground">
@@ -275,9 +388,15 @@ export default function Index() {
         <header className="border-b border-border/60 px-5 py-2 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <ThemedLogo className="h-5 w-auto" />
-            <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
-              Weekly Planning
-            </span>
+            <select
+              value={templateType}
+              onChange={e => setTemplateType(e.target.value as TemplateType)}
+              className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 appearance-none cursor-pointer hover:bg-primary/15 transition-colors"
+            >
+              {TEMPLATE_OPTIONS.map(o => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
           </div>
           <div className="flex items-center gap-1.5">
             <Link to="/batch">
@@ -373,7 +492,7 @@ export default function Index() {
                       variant="ghost"
                       size="sm"
                       className="text-[11px] h-6 px-2.5 text-muted-foreground hover:text-foreground"
-                      onClick={() => setTranscript(DEMO_TRANSCRIPT)}
+                      onClick={() => setTranscript(isHandoff ? DEMO_HANDOFF_TRANSCRIPT : DEMO_TRANSCRIPT)}
                     >
                       Example
                     </Button>
@@ -413,7 +532,9 @@ export default function Index() {
               {/* Generate area */}
               <div className="pt-1 space-y-2.5">
                 <p className="text-[11px] text-muted-foreground italic">
-                  We avoid guessing owners or deadlines. Unclear items go to Things to confirm.
+                  {isHandoff
+                    ? "Extracts tasks (internal + customer), promises, and open items from handoff meetings."
+                    : "We avoid guessing owners or deadlines. Unclear items go to Things to confirm."}
                 </p>
                 <div className="flex gap-2">
                   <button
@@ -496,13 +617,20 @@ export default function Index() {
                   validationFailed={currentRun?.validation_status === "fail"}
                 />
 
+                {/* Handoff context card */}
+                {isHandoff && handoffContext && <HandoffContextCard context={handoffContext} />}
+
                 <Tabs defaultValue="tasks" className="flex-1 flex flex-col overflow-hidden">
                   <TabsList className="mx-4 mt-2 bg-transparent self-start border-0 border-b border-border/40 rounded-none p-0 gap-0">
                     <TabsTrigger value="tasks" className="text-xs gap-1.5 rounded-none border-b-2 border-transparent data-[state=active]:border-b-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground text-muted-foreground hover:text-foreground/70 px-4 pb-2.5 pt-1.5">
-                      Tasks <span className="opacity-60">({tasks.length})</span>
+                      Tasks {isHandoff ? (
+                        <span className="opacity-60">({internalCount} internal · {customerCount} customer)</span>
+                      ) : (
+                        <span className="opacity-60">({tasks.length})</span>
+                      )}
                     </TabsTrigger>
                     <TabsTrigger value="decisions" className="text-xs gap-1.5 rounded-none border-b-2 border-transparent data-[state=active]:border-b-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground text-muted-foreground hover:text-foreground/70 px-4 pb-2.5 pt-1.5">
-                      Decisions <span className="opacity-60">({decisions.length})</span>
+                      {isHandoff ? "Promises" : "Decisions"} <span className="opacity-60">({decisions.length})</span>
                     </TabsTrigger>
                     <TabsTrigger value="confirm" className="text-xs gap-1.5 rounded-none border-b-2 border-transparent data-[state=active]:border-b-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground text-muted-foreground hover:text-foreground/70 px-4 pb-2.5 pt-1.5">
                       Things to confirm <span className="opacity-60">({questions.length})</span>
@@ -512,6 +640,24 @@ export default function Index() {
                   <div className="flex-1 overflow-auto p-4 custom-scrollbar">
                     <TabsContent value="tasks" className="mt-0">
                       <div className="flex items-center gap-2 mb-3 w-fit">
+                        {/* Side filter for handoff */}
+                        {isHandoff && (
+                          <div className="flex rounded-md border border-border/50 overflow-hidden mr-1">
+                            {(["all", "internal", "customer"] as const).map(s => (
+                              <button
+                                key={s}
+                                onClick={() => setFilterSide(s)}
+                                className={`text-[10px] font-medium px-2.5 py-1 transition-colors ${
+                                  filterSide === s
+                                    ? "bg-primary/10 text-primary"
+                                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                                }`}
+                              >
+                                {s === "all" ? "All" : s === "internal" ? "Internal" : "Customer"}
+                              </button>
+                            ))}
+                          </div>
+                        )}
                         {/* Owner filter dropdown */}
                         <div className="relative inline-flex items-center">
                           {filterOwner && <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-primary z-10" />}
@@ -543,7 +689,15 @@ export default function Index() {
                         </div>
                       </div>
                       <TaskList
-                        tasks={tasks} onChange={setTasks}
+                        tasks={displayTasks} onChange={(newTasks) => {
+                          // When filtered by side, merge back changes
+                          if (isHandoff && filterSide !== "all") {
+                            const otherTasks = tasks.filter(t => filterSide === "customer" ? t.side !== "customer" : t.side === "customer");
+                            setTasks([...otherTasks, ...newTasks]);
+                          } else {
+                            setTasks(newTasks);
+                          }
+                        }}
                         filterLowConfidence={filterLow} filterOwner={filterOwner} filterDate={filterDate}
                         viewMode={viewMode}
                         meetingDate={meetingDate}
