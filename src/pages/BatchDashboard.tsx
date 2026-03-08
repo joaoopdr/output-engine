@@ -34,7 +34,7 @@ interface GoldStandard {
   created_at: string;
 }
 
-function ThemedLogo({ className = "h-9" }: { className?: string }) {
+function ThemedLogo({ className = "h-12" }: { className?: string }) {
   return (
     <>
       <img src="/logo-dark.png" alt="BriefSync" className={`${className} dark:block hidden`} />
