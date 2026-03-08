@@ -627,13 +627,13 @@ export default function Index() {
                   </div>
                   <input ref={fileInputRef} type="file" accept=".txt" className="hidden" onChange={handleFileUpload} />
                 </div>
-                <div className="relative flex-1 min-h-[240px]">
+                <div className="relative flex-1 min-h-0">
                   <textarea
                     ref={transcriptRef}
                     value={transcript}
                     onChange={e => setTranscript(e.target.value)}
                     placeholder={"Paste your meeting transcript here...\nOr load an example →"}
-                    className="transcript-textarea w-full h-full rounded-lg border border-input bg-transparent px-3.5 py-3 text-sm resize-none transition-colors placeholder:text-muted-foreground/60"
+                    className="transcript-textarea w-full h-full rounded-lg border border-input bg-transparent px-3.5 py-3 text-sm resize-none overflow-y-auto transition-colors placeholder:text-muted-foreground/60"
                   />
                   {/* Evidence highlight overlay */}
                   <div
