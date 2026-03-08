@@ -1,4 +1,4 @@
-import type { ParsedOutput, Confidence, Priority, MeetingTask, MeetingDecision, MeetingQuestion, HandoffContext } from "@/types/meeting";
+import type { ParsedOutput, Confidence, Priority, MeetingTask, MeetingDecision, MeetingQuestion, HandoffContext, SprintContext } from "@/types/meeting";
 import { resolveDate } from "@/lib/dateUtils";
 import { differenceInDays, parseISO } from "date-fns";
 
