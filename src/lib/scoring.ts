@@ -19,15 +19,24 @@ export interface ScoreResult {
 const STOP_WORDS = new Set(["the", "a", "and", "to", "in", "of", "is", "it", "we", "for", "that", "this", "on", "with", "be", "as", "at", "by", "an", "or", "not", "are", "was", "has", "have", "do", "does"]);
 
 const VERB_SYNONYMS: Record<string, string> = {
-  "deliver": "build",
+  "deliver": "implement",
   "complete": "implement",
   "finish": "implement",
   "create": "build",
   "develop": "implement",
   "ship": "build",
-  "produce": "create",
+  "produce": "build",
   "write": "draft",
   "draft": "write",
+  "add": "implement",
+  "setup": "configure",
+  "set": "configure",
+  "deploy": "build",
+  "release": "build",
+  "launch": "build",
+  "fix": "resolve",
+  "resolve": "fix",
+  "investigate": "fix",
 };
 
 function normalizeWord(w: string): string {
