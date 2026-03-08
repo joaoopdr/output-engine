@@ -377,6 +377,7 @@ export default function Index() {
     toast.success("Opening email client...");
   };
 
+  const handleClear = () => {
     setTranscript(""); setTitle(""); setAttendees(""); setMeetingDate("");
     setTasks([]); setDecisions([]); setQuestions([]); setHandoffContext(null);
     setEditNotes(""); setHeavyEdits(false); setIsDirty(false); setFilterSide("all");
