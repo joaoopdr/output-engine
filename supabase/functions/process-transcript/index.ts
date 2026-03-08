@@ -55,6 +55,7 @@ DECISION RULES:
 - SCOPE NARROWING MID-SENTENCE: "search should only cover documents", "let's scope it down", "documents only" = scope decision even in casual phrasing. Always capture as: "[Feature] is scoped to [narrowed scope] for now."
 - SCOPE DECISIONS MUST BE TOP-LEVEL: If a scope constraint is mentioned as part of a task ("Fix mobile nav — hamburger menu only, not the full nav"), extract the scope constraint as a SEPARATE decision: "Mobile nav fix is scoped to hamburger menu only." Do not bury scope constraints inside task detail bullets. They must appear in decisions[].
 - FEATURE SCOPE NARROWING: Any phrase like "only", "just", "limited to", "scoped to", "not the full X" attached to a feature or task = extract a standalone scope decision.
+- SCOPE DECISION — MANDATORY EXTRACTION: The phrase "only [X]", "limited to [X]", "[feature] is [X] only", "documents only", "search only covers X" = a decision you MUST output. No exceptions. Format: "[Feature] is limited to [scope] for now."
 
 THINGS TO CONFIRM RULES (execution blockers only):
 - Include ONLY items that block execution:
