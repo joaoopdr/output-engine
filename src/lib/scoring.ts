@@ -142,7 +142,8 @@ export function scoreRun(
   const confirmResult = matchItems(
     expected.things_to_confirm.map(c => c.question),
     actual.open_questions.map(q => q.question),
-    true
+    true,
+    undefined
   );
 
   const taskRecall = expected.tasks.length > 0 ? taskResult.matched.length / expected.tasks.length : 1;
