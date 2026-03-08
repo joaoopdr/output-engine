@@ -8,7 +8,10 @@ import Index from "./pages/Index";
 import BatchDashboard from "./pages/BatchDashboard";
 import Integrations from "./pages/Integrations";
 import PricingPage from "./pages/PricingPage";
-import ChangelogPage from "./pages/ChangelogPage";
+import UseCasesPage from "./pages/UseCasesPage";
+import AboutPage from "./pages/AboutPage";
+import RoadmapPage from "./pages/RoadmapPage";
+import SecurityPage from "./pages/SecurityPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,7 +28,10 @@ const App = () => (
           <Route path="/batch" element={<BatchDashboard />} />
           <Route path="/integrations" element={<Integrations />} />
           <Route path="/pricing" element={<PricingPage />} />
-          <Route path="/changelog" element={<ChangelogPage />} />
+          <Route path="/use-cases" element={<UseCasesPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/roadmap" element={<RoadmapPage />} />
+          <Route path="/security" element={<SecurityPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
