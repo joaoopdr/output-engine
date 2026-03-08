@@ -46,11 +46,19 @@ export interface HandoffContext {
   key_stakeholders: { name: string; role: string; side: "internal" | "customer" }[];
 }
 
+export interface SprintContext {
+  sprint_goal: string;
+  sprint_number?: string;
+  team_capacity?: string;
+  definition_of_done: string[];
+}
+
 export interface ParsedOutput {
   tasks: MeetingTask[];
   decisions: MeetingDecision[];
   open_questions: MeetingQuestion[];
   handoff_context?: HandoffContext;
+  sprint_context?: SprintContext;
 }
 
 export interface TranscriptCase {
