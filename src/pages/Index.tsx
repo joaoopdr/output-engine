@@ -894,6 +894,34 @@ export default function Index() {
                     </Button>
                   </div>
                   <div className="h-4 w-px bg-border/40" />
+                  <div className="flex items-center gap-0.5 border border-border/40 rounded-md px-0.5">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          onClick={handlePostToTeams}
+                          disabled={!teamsWebhookUrl}
+                          variant="ghost"
+                          size="sm"
+                          className="text-xs h-7 gap-1 text-muted-foreground hover:text-foreground disabled:opacity-40"
+                        >
+                          <Send className="h-3 w-3" /> Teams
+                        </Button>
+                      </TooltipTrigger>
+                      {!teamsWebhookUrl && (
+                        <TooltipContent side="top" className="text-xs">
+                          Configure Teams in Integrations settings
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                    <Button
+                      onClick={handleSendEmail}
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs h-7 gap-1 text-muted-foreground hover:text-foreground"
+                    >
+                      <Mail className="h-3 w-3" /> Email
+                    </Button>
+                  <div className="h-4 w-px bg-border/40" />
                   <button
                     onClick={handleSaveEdits}
                     className="generate-btn h-7 px-3 rounded-md text-primary-foreground text-xs font-medium flex items-center gap-1"
