@@ -245,7 +245,50 @@ function SideBadge({ side }: { side: "internal" | "customer" }) {
   );
 }
 
-export default function Index() {
+interface HistoryEntry {
+  id: string;
+  title: string;
+  template_type: string;
+  meeting_date: string;
+  saved_at: string;
+  task_count: number;
+  decision_count: number;
+  question_count: number;
+  tasks: MeetingTask[];
+  decisions: MeetingDecision[];
+  questions: MeetingQuestion[];
+  transcript: string;
+  attendees: string;
+}
+
+const HISTORY_KEY = "briefs_history";
+const MAX_HISTORY = 20;
+
+function loadHistory(): HistoryEntry[] {
+  try {
+    const raw = localStorage.getItem(HISTORY_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+}
+
+function saveToHistory(entry: HistoryEntry) {
+  const history = loadHistory();
+  history.unshift(entry);
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(0, MAX_HISTORY)));
+}
+
+function removeFromHistory(id: string) {
+  const history = loadHistory().filter(e => e.id !== id);
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+}
+
+const WHATS_NEW_ENTRIES = [
+  { title: "Customer Handoff", desc: "New extraction model for sales-to-delivery handoffs. Internal vs customer task split." },
+  { title: "Sprint Planning", desc: "Stories, acceptance criteria, and point estimates extracted automatically." },
+  { title: "Share tab", desc: "Generate follow-up emails and Slack messages from your outputs in one click." },
+];
+
+
   const [transcript, setTranscript] = useState("");
   const [title, setTitle] = useState("");
   const [attendees, setAttendees] = useState("");
