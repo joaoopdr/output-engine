@@ -33,7 +33,7 @@ const VERB_SYNONYMS: Record<string, string> = {
   "ship": "build",
   "produce": "build",
   "write": "draft",
-  "draft": "write",
+  "draft": "draft",
   "add": "implement",
   "setup": "configure",
   "set": "configure",
@@ -41,9 +41,9 @@ const VERB_SYNONYMS: Record<string, string> = {
   "release": "build",
   "launch": "build",
   "fix": "resolve",
-  "resolve": "fix",
-  "investigate": "fix",
-  "implement": "fix",
+  "resolve": "resolve",
+  "investigate": "resolve",
+  "implement": "resolve",
 };
 
 function normalizeWord(w: string): string {
@@ -172,17 +172,22 @@ export function scoreRun(
   const confirmRecall = expected.things_to_confirm.length > 0 ? confirmResult.matched.length / expected.things_to_confirm.length : 1;
   const confirmPrecision = actual.open_questions.length > 0 ? confirmResult.matched.length / actual.open_questions.length : 1;
 
-  const taskF1 = taskRecall + taskPrecision > 0
+  // F1 score per category
+  const taskF1 = (taskRecall + taskPrecision) > 0
     ? (2 * taskRecall * taskPrecision) / (taskRecall + taskPrecision)
-    : 0;
-  const decisionF1 = decisionRecall + decisionPrecision > 0
-    ? (2 * decisionRecall * decisionPrecision) / (decisionRecall + decisionPrecision)
-    : 0;
-  const confirmF1 = confirmRecall + confirmPrecision > 0
-    ? (2 * confirmRecall * confirmPrecision) / (confirmRecall + confirmPrecision)
-    : 0;
+    : 1.0; // if no expected AND no actual = perfect
 
+  const decisionF1 = (decisionRecall + decisionPrecision) > 0
+    ? (2 * decisionRecall * decisionPrecision) / (decisionRecall + decisionPrecision)
+    : 1.0;
+
+  const confirmF1 = (confirmRecall + confirmPrecision) > 0
+    ? (2 * confirmRecall * confirmPrecision) / (confirmRecall + confirmPrecision)
+    : 1.0;
+
+  // Weighted overall — hallucinations never affect this number
   const overall = (taskF1 * 0.5) + (decisionF1 * 0.3) + (confirmF1 * 0.2);
+  // DO NOT modify overall_score after this point — hallucinations are display-only.
 
   return {
     task_recall: taskRecall,
