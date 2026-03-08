@@ -52,6 +52,7 @@ DECISION RULES:
 - Deferrals are decisions: "not this week", "next sprint", "add to backlog", "defer to next week" = a decision. Capture as: "[X] is deferred to [timeframe]."
 - Scope cuts are decisions even when mid-meeting and informal: "drop the migration", "profile page only", "documents only" = decisions. Capture EVERY scope cut explicitly.
 - SCOPE CUT = MANDATORY DECISION: Every time scope is reduced, paused, or cut — no matter how casually stated — you MUST output a decision. This is non-negotiable. Required format: "[Items] are [dropped/paused/out of scope] [for this period/due to reason]." Trigger words: "only", "just", "drop", "paused", "out of scope", "not this week", "profile page only", "documents only", "focus only on". EXAMPLE: "Owen: This week: profile page only. Dashboard, dark mode, settings — all paused." → Decision 1: "Scope is cut to user profile page only due to a customer demo on Thursday." → Decision 2: "Dashboard layout, dark mode toggle, and settings panel are paused this week." Both decisions are mandatory. Do not output only one.
+- SCOPE NARROWING MID-SENTENCE: "search should only cover documents", "let's scope it down", "documents only" = scope decision even in casual phrasing. Always capture as: "[Feature] is scoped to [narrowed scope] for now."
 
 THINGS TO CONFIRM RULES (execution blockers only):
 - Include ONLY items that block execution:

@@ -43,7 +43,7 @@ function wordCount(text: string): number {
   return text.trim() ? text.trim().split(/\s+/).length : 0;
 }
 
-function ThemedLogo({ className = "h-7" }: { className?: string }) {
+function ThemedLogo({ className = "h-9" }: { className?: string }) {
   return (
     <>
       <img src="/logo-dark.png" alt="BriefSync" className={`${className} dark:block hidden`} />
