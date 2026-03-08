@@ -77,7 +77,7 @@ export function generateSlack(props: ShareProps): string {
   if (decisions.length > 0) {
     msg += "*Decisions*\n";
     for (const d of decisions) {
-      msg += `- ${d.text}\n`;
+      msg += `- ${d.decision}\n`;
     }
     msg += "\n";
   }

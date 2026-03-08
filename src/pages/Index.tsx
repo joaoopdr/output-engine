@@ -643,6 +643,11 @@ export default function Index() {
                     <TabsTrigger value="confirm" className="text-xs gap-1.5 rounded-none border-b-2 border-transparent data-[state=active]:border-b-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground text-muted-foreground hover:text-foreground/70 px-4 pb-2.5 pt-1.5">
                       Things to confirm <span className="opacity-60">({questions.length})</span>
                     </TabsTrigger>
+                    {(tasks.length > 0 || decisions.length > 0) && (
+                      <TabsTrigger value="share" className="text-xs gap-1.5 rounded-none border-b-2 border-transparent data-[state=active]:border-b-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground text-muted-foreground hover:text-foreground/70 px-4 pb-2.5 pt-1.5">
+                        <Share2 className="h-3 w-3" /> Share
+                      </TabsTrigger>
+                    )}
                   </TabsList>
 
                   <div className="flex-1 overflow-auto p-4 custom-scrollbar">
