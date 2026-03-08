@@ -237,7 +237,7 @@ export default function BatchDashboard() {
     if (scores.length > 0) {
       const avg = (arr: number[]) => arr.reduce((s, v) => s + v, 0) / arr.length;
       setCompareResults({
-        version: "v12",
+        version: "v14",
         avgScore: avg(scores.map(s => s.overall_score)),
         taskRecall: avg(scores.map(s => s.task_recall)),
         decisionRecall: avg(scores.map(s => s.decision_recall)),
