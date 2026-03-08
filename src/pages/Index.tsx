@@ -63,6 +63,24 @@ James: Probably me, but let me confirm with our compliance officer. I'll come ba
 Tom: Works for us. I'll draft a project kickoff doc and share it with everyone by Thursday.
 Sarah: And I'll send the signed contract copy to Tom and Maya today.`;
 
+const DEMO_SPRINT_TRANSCRIPT = `Sarah (PM): Alright, sprint goal for this one is getting the checkout flow production-ready. That's our north star for the next two weeks.
+Dev (Tech Lead): Agreed. Let's go through the stories. First up — payment processing integration. Tom, that's yours?
+Tom: Yeah, I'll take it. Three points. Done means: card payments work end to end in staging, error states handled, and we have a unit test suite covering the main flows.
+Dev: Perfect. Next — order confirmation emails. Who's picking that up?
+Lisa: I'll do it. It's straightforward — two points. Done when confirmation email sends within 30 seconds of order, with correct order details and a working unsubscribe link.
+Dev: Good. Cart persistence across sessions — that's been on the backlog forever.
+Sarah: That's in for this sprint. It's blocking our return-user conversion rate.
+Tom: I can take that too. Five points — it's more complex than it looks. Needs to work across devices. Done when cart state survives browser close and login/logout.
+Dev: Shipping address validation — Lisa?
+Lisa: Yes, three points. Done when we validate format, flag invalid postcodes, and integrate with the address lookup API.
+Dev: One thing we haven't resolved — the discount code system. Sarah, is that in this sprint?
+Sarah: Not in scope. Next sprint. Too much scope risk.
+Dev: Agreed, pushing it. One dependency flag — Tom's cart persistence work needs the auth refactor to be merged first. Is that done?
+Tom: Should be merged by Monday. If not, I'll flag it.
+Dev: Let's add that as a confirm item. Also — mobile responsive pass for the whole checkout, is anyone owning that?
+Sarah: Nobody's committed to it yet. We should probably add it.
+Dev: Let's put it as unassigned for now and confirm in standup tomorrow.`;
+
 function wordCount(text: string): number {
   return text.trim() ? text.trim().split(/\s+/).length : 0;
 }
