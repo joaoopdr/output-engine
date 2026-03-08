@@ -788,7 +788,7 @@ export default function Index() {
                 {inputCollapsed ? "Show input" : "Hide input"}
               </button>
             )}
-            <div className="px-6 pt-4 pb-4 space-y-2 flex-1 flex flex-col overflow-hidden">
+            <div className="px-3 md:px-6 pt-3 md:pt-4 pb-3 md:pb-4 space-y-2 flex-1 flex flex-col overflow-hidden">
               {/* Meeting type cards */}
               <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
                 {([
