@@ -587,7 +587,7 @@ export default function Index() {
               /* Empty state */
               <div className="flex-1 flex items-center justify-center">
                 <div className="text-center max-w-sm space-y-6">
-                  <ThemedLogo className="h-7 mx-auto" />
+                  <ThemedLogo className="h-32 mx-auto" />
                   <p className="text-sm text-muted-foreground">Paste a transcript on the left and hit Generate</p>
 
                   <div className="space-y-2 text-left mx-auto w-fit">
