@@ -317,6 +317,10 @@ export default function Index() {
   const [isDirty, setIsDirty] = useState(false);
   const [timePrefs, setTimePrefs] = useState<TimePrefs>(loadTimePrefs);
   const [inputCollapsed, setInputCollapsed] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [history, setHistory] = useState<HistoryEntry[]>(loadHistory);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [whatsNewSeen, setWhatsNewSeen] = useState(() => localStorage.getItem("briefs_whats_new_seen") === "true");
   const isMobile = useIsMobile();
 
   const isHandoff = templateType === "customer_handoff";
