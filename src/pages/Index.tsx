@@ -30,6 +30,9 @@ import {
 import {
   Collapsible, CollapsibleContent, CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 
 const DEMO_TRANSCRIPT = `Alice: Alright everyone, let's go through this week's priorities.
 Bob: I'll finish the API integration by Wednesday. Already started yesterday.
@@ -387,16 +390,19 @@ export default function Index() {
         {/* Header */}
         <header className="border-b border-border/60 px-5 py-2 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <ThemedLogo className="h-5 w-auto" />
-            <select
-              value={templateType}
-              onChange={e => setTemplateType(e.target.value as TemplateType)}
-              className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 appearance-none cursor-pointer hover:bg-primary/15 transition-colors"
-            >
-              {TEMPLATE_OPTIONS.map(o => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </select>
+            <ThemedLogo className="h-12 w-auto" />
+            <Select value={templateType} onValueChange={(v) => setTemplateType(v as TemplateType)}>
+              <SelectTrigger className="h-7 text-xs font-mono w-44 border-primary/30 bg-primary/10 text-center justify-center">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {TEMPLATE_OPTIONS.map(opt => (
+                  <SelectItem key={opt.value} value={opt.value} className="text-xs font-mono">
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="flex items-center gap-1.5">
             <Link to="/batch">
@@ -584,7 +590,7 @@ export default function Index() {
               /* Empty state */
               <div className="flex-1 flex items-center justify-center">
                 <div className="text-center max-w-sm space-y-6">
-                  <ThemedLogo className="h-7 mx-auto" />
+                  <ThemedLogo className="h-32 mx-auto" />
                   <p className="text-sm text-muted-foreground">Paste a transcript on the left and hit Generate</p>
 
                   <div className="space-y-2 text-left mx-auto w-fit">

@@ -285,9 +285,9 @@ serve(async (req) => {
     return new Response(JSON.stringify({ raw_output: content }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (e) {
-    console.error("process-transcript error:", e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
+  } catch (err) {
+    console.error("Edge function error:", err);
+    return new Response(JSON.stringify({ error: String(err) }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
