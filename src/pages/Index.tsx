@@ -488,6 +488,12 @@ export default function Index() {
                 <Plug className="h-3.5 w-3.5" /> Integrations
               </Button>
             </Link>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <TimePreferences onChange={setTimePrefs} />
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-xs">Time preferences</TooltipContent>
+            </Tooltip>
             <ThemeToggle />
             <Tooltip>
               <TooltipTrigger asChild>
