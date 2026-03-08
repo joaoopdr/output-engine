@@ -17,6 +17,8 @@ export interface MeetingTask {
   evidence: string[];
   notes: string;
   side?: "internal" | "customer";
+  story_points?: number;
+  acceptance_criteria?: string[];
 }
 
 export interface MeetingDecision {
