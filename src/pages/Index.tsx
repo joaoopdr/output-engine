@@ -21,9 +21,9 @@ import {
   Save, AlertTriangle, Upload, Eraser, User, Calendar,
   LayoutGrid, HelpCircle, CheckCircle2, Shield, Eye,
   Sun, Moon, FileType, ChevronDown, ChevronRight, Check, AlertCircle,
+  Share2, ClipboardList, Handshake, Timer,
 } from "lucide-react";
 import { SharePanel } from "@/components/meeting/SharePanel";
-import { Share2 } from "lucide-react";
 import { TimePreferences, loadTimePrefs, type TimePrefs } from "@/components/meeting/TimePreferences";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -32,9 +32,7 @@ import {
 import {
   Collapsible, CollapsibleContent, CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const DEMO_TRANSCRIPT = `Alice: Alright everyone, let's go through this week's priorities.
 Bob: I'll finish the API integration by Wednesday. Already started yesterday.
