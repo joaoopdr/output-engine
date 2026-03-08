@@ -434,7 +434,7 @@ export default function Index() {
 
   const handleClear = () => {
     setTranscript(""); setTitle(""); setAttendees(""); setMeetingDate("");
-    setTasks([]); setDecisions([]); setQuestions([]); setHandoffContext(null);
+    setTasks([]); setDecisions([]); setQuestions([]); setHandoffContext(null); setSprintContext(null);
     setEditNotes(""); setHeavyEdits(false); setIsDirty(false); setFilterSide("all");
   };
 
