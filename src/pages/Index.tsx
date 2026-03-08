@@ -22,6 +22,7 @@ import {
   LayoutGrid, HelpCircle, CheckCircle2, Shield, Eye,
   Sun, Moon, FileType, ChevronDown, ChevronRight, Check, AlertCircle,
   Share2, ClipboardList, Handshake, Timer, Plug, Send, Mail,
+  History, Sparkles, X,
 } from "lucide-react";
 import { SharePanel } from "@/components/meeting/SharePanel";
 import { TimePreferences, loadTimePrefs, type TimePrefs } from "@/components/meeting/TimePreferences";
@@ -32,6 +33,12 @@ import {
 import {
   Collapsible, CollapsibleContent, CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Popover, PopoverContent, PopoverTrigger,
+} from "@/components/ui/popover";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const DEMO_TRANSCRIPT = `Alice: Alright everyone, let's go through this week's priorities.
@@ -238,6 +245,49 @@ function SideBadge({ side }: { side: "internal" | "customer" }) {
   );
 }
 
+interface HistoryEntry {
+  id: string;
+  title: string;
+  template_type: string;
+  meeting_date: string;
+  saved_at: string;
+  task_count: number;
+  decision_count: number;
+  question_count: number;
+  tasks: MeetingTask[];
+  decisions: MeetingDecision[];
+  questions: MeetingQuestion[];
+  transcript: string;
+  attendees: string;
+}
+
+const HISTORY_KEY = "briefs_history";
+const MAX_HISTORY = 20;
+
+function loadHistory(): HistoryEntry[] {
+  try {
+    const raw = localStorage.getItem(HISTORY_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+}
+
+function saveToHistory(entry: HistoryEntry) {
+  const history = loadHistory();
+  history.unshift(entry);
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(0, MAX_HISTORY)));
+}
+
+function removeFromHistory(id: string) {
+  const history = loadHistory().filter(e => e.id !== id);
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+}
+
+const WHATS_NEW_ENTRIES = [
+  { title: "Customer Handoff", desc: "New extraction model for sales-to-delivery handoffs. Internal vs customer task split." },
+  { title: "Sprint Planning", desc: "Stories, acceptance criteria, and point estimates extracted automatically." },
+  { title: "Share tab", desc: "Generate follow-up emails and Slack messages from your outputs in one click." },
+];
+
 export default function Index() {
   const [transcript, setTranscript] = useState("");
   const [title, setTitle] = useState("");
@@ -267,6 +317,10 @@ export default function Index() {
   const [isDirty, setIsDirty] = useState(false);
   const [timePrefs, setTimePrefs] = useState<TimePrefs>(loadTimePrefs);
   const [inputCollapsed, setInputCollapsed] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [history, setHistory] = useState<HistoryEntry[]>(loadHistory);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [whatsNewSeen, setWhatsNewSeen] = useState(() => localStorage.getItem("briefs_whats_new_seen") === "true");
   const isMobile = useIsMobile();
 
   const isHandoff = templateType === "customer_handoff";
@@ -290,6 +344,7 @@ export default function Index() {
       if (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT") return;
       if (e.key === "/" && !e.metaKey && !e.ctrlKey) { e.preventDefault(); setCmdOpen(true); }
       if (e.key === "f" && !e.metaKey && !e.ctrlKey) { e.preventDefault(); setFilterLow(v => !v); }
+      if (e.key === "?" && !e.metaKey && !e.ctrlKey) { e.preventDefault(); setShortcutsOpen(true); }
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
@@ -316,6 +371,25 @@ export default function Index() {
       setSprintContext(result.output.sprint_context || null);
       setIsDirty(false);
       setFilterSide("all");
+
+      // Save to history
+      const entry: HistoryEntry = {
+        id: crypto.randomUUID(),
+        title: title || "Untitled",
+        template_type: templateType,
+        meeting_date: meetingDate,
+        saved_at: new Date().toISOString(),
+        task_count: result.output.tasks.length,
+        decision_count: result.output.decisions.length,
+        question_count: result.output.open_questions.length,
+        tasks: result.output.tasks,
+        decisions: result.output.decisions,
+        questions: result.output.open_questions,
+        transcript,
+        attendees,
+      };
+      saveToHistory(entry);
+      setHistory(loadHistory());
     }
   };
 
@@ -438,6 +512,32 @@ export default function Index() {
     setEditNotes(""); setHeavyEdits(false); setIsDirty(false); setFilterSide("all");
   };
 
+  const handleRestoreHistory = (entry: HistoryEntry) => {
+    setTranscript(entry.transcript);
+    setTitle(entry.title === "Untitled" ? "" : entry.title);
+    setAttendees(entry.attendees);
+    setMeetingDate(entry.meeting_date);
+    setTemplateType(entry.template_type as TemplateType);
+    setTasks(entry.tasks);
+    setDecisions(entry.decisions);
+    setQuestions(entry.questions);
+    setHandoffContext(null);
+    setSprintContext(null);
+    setIsDirty(false);
+    setHistoryOpen(false);
+    toast.success(`Restored "${entry.title}"`);
+  };
+
+  const handleDeleteHistory = (id: string) => {
+    removeFromHistory(id);
+    setHistory(loadHistory());
+  };
+
+  const handleWhatsNewOpen = () => {
+    setWhatsNewSeen(true);
+    localStorage.setItem("briefs_whats_new_seen", "true");
+  };
+
   const handleEvidenceClick = useCallback((snippet: string) => {
     if (!transcriptRef.current) return;
     const text = transcriptRef.current.value;
@@ -527,22 +627,137 @@ export default function Index() {
       <div className="h-screen overflow-hidden flex flex-col bg-background text-foreground">
         <CommandPalette open={cmdOpen} onOpenChange={setCmdOpen} onAction={handleCommand} />
 
-        {/* Header */}
-        <header className="border-b border-border/60 px-5 py-2 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <ThemedLogo className="h-12 w-auto" />
+        {/* Keyboard shortcuts modal */}
+        <Dialog open={shortcutsOpen} onOpenChange={setShortcutsOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Keyboard shortcuts</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 text-sm">
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Navigation</p>
+                <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5">
+                  <kbd className="px-2 py-0.5 rounded bg-muted text-[11px] font-mono text-center">j / k</kbd><span className="text-muted-foreground">Navigate tasks up / down</span>
+                  <kbd className="px-2 py-0.5 rounded bg-muted text-[11px] font-mono text-center">e</kbd><span className="text-muted-foreground">Edit selected task</span>
+                  <kbd className="px-2 py-0.5 rounded bg-muted text-[11px] font-mono text-center">d</kbd><span className="text-muted-foreground">Delete selected task</span>
+                </div>
+              </div>
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Actions</p>
+                <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5">
+                  <kbd className="px-2 py-0.5 rounded bg-muted text-[11px] font-mono text-center">⌘ Enter</kbd><span className="text-muted-foreground">Generate outputs</span>
+                  <kbd className="px-2 py-0.5 rounded bg-muted text-[11px] font-mono text-center">f</kbd><span className="text-muted-foreground">Toggle low-confidence filter</span>
+                  <kbd className="px-2 py-0.5 rounded bg-muted text-[11px] font-mono text-center">/ or ⌘K</kbd><span className="text-muted-foreground">Open command palette</span>
+                  <kbd className="px-2 py-0.5 rounded bg-muted text-[11px] font-mono text-center">?</kbd><span className="text-muted-foreground">Show this help</span>
+                </div>
+              </div>
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Export</p>
+                <p className="text-muted-foreground text-xs">No shortcuts yet — use the export buttons in the footer.</p>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* History panel */}
+        {historyOpen && (
+          <div className="fixed inset-0 z-50 flex">
+            <div className="w-80 bg-background border-r border-border shadow-xl flex flex-col h-full animate-in slide-in-from-left duration-200">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-border/60">
+                <span className="text-sm font-semibold">Meeting History</span>
+                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setHistoryOpen(false)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="flex-1 overflow-y-auto">
+                {history.length === 0 ? (
+                  <p className="text-sm text-muted-foreground p-4 text-center">No meetings yet. Generate your first one.</p>
+                ) : (
+                  <div className="divide-y divide-border/40">
+                    {history.map(entry => (
+                      <div
+                        key={entry.id}
+                        className="px-4 py-3 hover:bg-muted/30 cursor-pointer transition-colors group"
+                        onClick={() => handleRestoreHistory(entry)}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium truncate">{entry.title}</p>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
+                                {entry.template_type === "customer_handoff" ? "Handoff" : entry.template_type === "sprint_planning" ? "Sprint" : "Weekly"}
+                              </span>
+                              {entry.meeting_date && <span className="text-[10px] text-muted-foreground">{entry.meeting_date}</span>}
+                            </div>
+                            <p className="text-[10px] text-muted-foreground mt-1">
+                              {entry.task_count} tasks · {entry.decision_count} decisions · {entry.question_count} to confirm
+                            </p>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 shrink-0 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
+                            onClick={(e) => { e.stopPropagation(); handleDeleteHistory(entry.id); }}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="flex-1 bg-black/40" onClick={() => setHistoryOpen(false)} />
           </div>
-          <div className="flex items-center gap-1.5">
-            <Link to="/batch" className="hidden lg:inline-flex">
+        )}
+
+        {/* Header */}
+        <header className="border-b border-border/60 px-3 md:px-5 py-2 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <ThemedLogo className="h-10 md:h-12 w-auto" />
+          </div>
+          <div className="flex items-center gap-1">
+            <Link to="/batch" className="hidden md:inline-flex">
               <Button variant="ghost" size="sm" className="text-xs h-7 gap-1.5 text-muted-foreground hover:text-foreground">
-                <LayoutGrid className="h-3.5 w-3.5" /> Batch
+                <LayoutGrid className="h-3.5 w-3.5" /> <span className="hidden lg:inline">Batch</span>
               </Button>
             </Link>
-            <Link to="/integrations" className="hidden lg:inline-flex">
+            <Link to="/integrations" className="hidden md:inline-flex">
               <Button variant="ghost" size="sm" className="text-xs h-7 gap-1.5 text-muted-foreground hover:text-foreground">
-                <Plug className="h-3.5 w-3.5" /> Integrations
+                <Plug className="h-3.5 w-3.5" /> <span className="hidden lg:inline">Integrations</span>
               </Button>
             </Link>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={() => setHistoryOpen(true)}>
+                  <History className="h-3.5 w-3.5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-xs">Meeting history</TooltipContent>
+            </Tooltip>
+            {/* What's new */}
+            <Popover onOpenChange={(open) => { if (open) handleWhatsNewOpen(); }}>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground relative">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  {!whatsNewSeen && (
+                    <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-primary animate-pulse" />
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-72 p-3 space-y-3">
+                <p className="text-xs font-semibold">What's new</p>
+                <div className="space-y-2.5">
+                  {WHATS_NEW_ENTRIES.map((e, i) => (
+                    <div key={i}>
+                      <p className="text-xs font-medium">{e.title}</p>
+                      <p className="text-[11px] text-muted-foreground leading-snug">{e.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
             <Tooltip>
               <TooltipTrigger asChild>
                 <TimePreferences onChange={setTimePrefs} />
@@ -552,25 +767,16 @@ export default function Index() {
             <ThemeToggle />
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground">
+                <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={() => setShortcutsOpen(true)}>
                   <HelpCircle className="h-3.5 w-3.5" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="bottom" align="end" className="max-w-[240px] text-xs space-y-1 p-3">
-                <p className="font-medium text-foreground mb-1.5">Keyboard shortcuts</p>
-                <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-muted-foreground">
-                  <kbd className="px-1.5 py-0.5 rounded bg-muted text-[10px] text-center">/</kbd><span>Command palette</span>
-                  <kbd className="px-1.5 py-0.5 rounded bg-muted text-[10px] text-center">j/k</kbd><span>Navigate items</span>
-                  <kbd className="px-1.5 py-0.5 rounded bg-muted text-[10px] text-center">e</kbd><span>Edit item</span>
-                  <kbd className="px-1.5 py-0.5 rounded bg-muted text-[10px] text-center">d</kbd><span>Delete item</span>
-                  <kbd className="px-1.5 py-0.5 rounded bg-muted text-[10px] text-center">f</kbd><span>Filter low-confidence</span>
-                </div>
-              </TooltipContent>
+              <TooltipContent side="bottom" className="text-xs">Keyboard shortcuts (?)</TooltipContent>
             </Tooltip>
           </div>
         </header>
 
-        <div className="flex-1 overflow-hidden flex flex-col lg:flex-row">
+        <div className="flex-1 overflow-hidden flex flex-col md:flex-row">
           {/* Left: Input Panel */}
           <div className={`${isMobile ? 'w-full' : 'w-[460px]'} border-r border-border/40 flex flex-col shrink-0 bg-background overflow-hidden ${isMobile && hasOutputs && inputCollapsed ? 'hidden' : ''}`}>
             {isMobile && hasOutputs && (
@@ -582,7 +788,7 @@ export default function Index() {
                 {inputCollapsed ? "Show input" : "Hide input"}
               </button>
             )}
-            <div className="px-6 pt-4 pb-4 space-y-2 flex-1 flex flex-col overflow-hidden">
+            <div className="px-3 md:px-6 pt-3 md:pt-4 pb-3 md:pb-4 space-y-2 flex-1 flex flex-col overflow-hidden">
               {/* Meeting type cards */}
               <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
                 {([
@@ -753,7 +959,7 @@ export default function Index() {
           </div>
 
           {/* Subtle divider */}
-          <div className="w-px bg-border/30 hidden lg:block" />
+          <div className="w-px bg-border/30 hidden md:block" />
 
           {/* Right: Outputs */}
           <div className="flex-1 flex flex-col overflow-hidden bg-background">
