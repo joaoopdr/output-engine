@@ -579,25 +579,22 @@ export default function Index() {
               </div>
 
               <div>
-                <div className="flex items-center gap-1.5">
-                  <div className="floating-label-group relative flex-1">
-                    <input
-                      id="date-input"
-                      value={meetingDate}
-                      onChange={e => setMeetingDate(e.target.value)}
-                      placeholder=" "
-                      className="h-[52px] pr-16"
-                    />
-                    <label htmlFor="date-input">Meeting date</label>
-                    <button
-                      type="button"
-                      onClick={() => setMeetingDate(format(new Date(), "dd/MM/yyyy"))}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-medium px-2 py-1 rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
-                    >
-                      Today
-                    </button>
-                  </div>
-                  <TimePreferences onChange={setTimePrefs} />
+                <div className="floating-label-group relative">
+                  <input
+                    id="date-input"
+                    value={meetingDate}
+                    onChange={e => setMeetingDate(e.target.value)}
+                    placeholder=" "
+                    className="h-[52px] pr-16"
+                  />
+                  <label htmlFor="date-input">Meeting date</label>
+                  <button
+                    type="button"
+                    onClick={() => setMeetingDate(format(new Date(), "dd/MM/yyyy"))}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-medium px-2 py-1 rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                  >
+                    Today
+                  </button>
                 </div>
                 {meetingDatePreview ? (
                   <p className="text-[11px] text-primary mt-1 ml-1">→ {meetingDatePreview}</p>
