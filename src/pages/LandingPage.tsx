@@ -176,8 +176,8 @@ export default function LandingPage() {
             <h2 className="text-xl sm:text-2xl font-bold">Ready to stop losing action items?</h2>
             <p className="text-sm text-white/45">Paste your first transcript in under a minute.</p>
             <Button asChild size="lg" className="h-12 px-8 text-sm font-semibold bg-primary hover:bg-primary/90 group">
-              <Link to="/app">
-                Try BriefSync free
+              <Link to="/waitlist">
+                Join the waitlist
                 <span className="inline-block ml-1 transition-transform group-hover:translate-x-1">→</span>
               </Link>
             </Button>

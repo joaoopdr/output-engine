@@ -79,8 +79,11 @@ export function LandingNav() {
               {l.label}
             </Link>
           ))}
+          <Link to="/app" onClick={() => setOpen(false)} className="block text-sm text-white/60 hover:text-white">
+            Try demo →
+          </Link>
           <Button asChild size="sm" className="w-full h-9 text-xs font-semibold bg-primary hover:bg-primary/90">
-            <Link to="/app" onClick={() => setOpen(false)}>Try free →</Link>
+            <Link to="/waitlist" onClick={() => setOpen(false)}>Join waitlist →</Link>
           </Button>
         </div>
       )}
