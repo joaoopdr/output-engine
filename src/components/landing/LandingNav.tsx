@@ -51,11 +51,13 @@ export function LandingNav() {
         </div>
 
         {/* Right — CTA desktop */}
-        <div className="hidden lg:flex flex-col items-end gap-0.5 shrink-0">
+        <div className="hidden lg:flex items-center gap-3 shrink-0">
+          <Link to="/app" className="text-[13px] text-white/50 hover:text-white transition-colors">
+            Try demo →
+          </Link>
           <Button asChild size="sm" className="h-8 px-4 text-xs font-semibold bg-primary hover:bg-primary/90">
-            <Link to="/app">Try free →</Link>
+            <Link to="/waitlist">Join waitlist →</Link>
           </Button>
-          <span className="text-[10px] text-white/30">No signup needed</span>
         </div>
 
         {/* Mobile hamburger */}
