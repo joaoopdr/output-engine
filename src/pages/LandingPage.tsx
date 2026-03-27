@@ -96,10 +96,10 @@ export default function LandingPage() {
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <Button asChild size="lg" className="h-11 px-6 text-sm font-semibold bg-primary hover:bg-primary/90">
-            <Link to="/app">Try free →</Link>
+            <Link to="/waitlist">Get early access →</Link>
           </Button>
           <Button asChild variant="ghost" size="lg" className="h-11 px-6 text-sm text-white/60 hover:text-white">
-            <a href="#features">See how it works</a>
+            <Link to="/app">See the demo →</Link>
           </Button>
         </div>
         <div className="mt-5 flex flex-wrap items-center justify-center gap-3 text-[11px] text-white/40 font-mono">
