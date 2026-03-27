@@ -13,6 +13,8 @@ import AboutPage from "./pages/AboutPage";
 import RoadmapPage from "./pages/RoadmapPage";
 import SecurityPage from "./pages/SecurityPage";
 import NotFound from "./pages/NotFound";
+import WaitlistPage from "./pages/WaitlistPage";
+import WaitlistAdmin from "./pages/WaitlistAdmin";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +34,8 @@ const App = () => (
           <Route path="/about" element={<AboutPage />} />
           <Route path="/roadmap" element={<RoadmapPage />} />
           <Route path="/security" element={<SecurityPage />} />
+          <Route path="/waitlist" element={<WaitlistPage />} />
+          <Route path="/admin/waitlist" element={<WaitlistAdmin />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

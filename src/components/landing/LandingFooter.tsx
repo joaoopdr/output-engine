@@ -16,6 +16,7 @@ export function LandingFooter() {
             <Link to="/about" className="hover:text-white/60 transition-colors">About</Link>
             <Link to="/roadmap" className="hover:text-white/60 transition-colors">Roadmap</Link>
             <Link to="/security" className="hover:text-white/60 transition-colors">Security</Link>
+            <Link to="/waitlist" className="hover:text-white/60 transition-colors">Join waitlist</Link>
           </div>
         </div>
         <div className="text-center">
