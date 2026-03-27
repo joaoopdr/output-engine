@@ -167,6 +167,39 @@ export type Database = {
         }
         Relationships: []
       }
+      waitlist: {
+        Row: {
+          biggest_pain: string | null
+          created_at: string
+          email: string
+          id: string
+          name: string
+          referral_source: string | null
+          role: string | null
+          team_size: string | null
+        }
+        Insert: {
+          biggest_pain?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          referral_source?: string | null
+          role?: string | null
+          team_size?: string | null
+        }
+        Update: {
+          biggest_pain?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          referral_source?: string | null
+          role?: string | null
+          team_size?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
